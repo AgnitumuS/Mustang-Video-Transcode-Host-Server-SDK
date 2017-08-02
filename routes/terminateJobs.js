@@ -1,0 +1,66 @@
+/**************************************************************
+ * Copyright (c) 2017 IEI Integration Corp. http://www.ieiworld.com
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var express = require('express');
+var terminateAPI = express.Router();
+var request = require('request');
+var db = require('../db/dbSqlite').sqliteDB;
+var config = require('../config/config');
+var cardMap = require('../config/cardMap');
+var terminateJob = require('./tools/toolsIdx').terminateJob;
+
+terminateAPI.route('/')
+	.get(function(req, res) {
+		res.json({Message : "terminateAPI"});
+	})
+	.post(function(req, res) {
+		var array = req.body.jobsArray;
+		var promiseArr = [];
+		for (var i = 0; i < array.length; i++) {
+			promiseArr.push(Promise.resolve(terminateJob(array[i])));
+		}
+
+		Promise.all(promiseArr)
+			.then(function(allData) {
+				return new Promise(function(resolve, reject) {
+					var result = [];
+					for (var i = 0; i < allData.length; i++) {
+						var obj = {
+							jobId : array[i],
+							message : allData[i]
+						}
+						result.push(obj);
+					}
+					resolve(result);
+				});
+			})
+			.then(function(result) {
+				res.json(result);
+			})
+			.catch(function(err) {
+				console.log(err);
+				res.statusCode = 500;
+				res.json({Message : "Internal Server Error!"});
+			});
+	});
+
+module.exports = terminateAPI;
