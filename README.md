@@ -17,11 +17,11 @@ Install NodeJS in your system with the following command:
 
 #### Step3:
 Change to the Mustang Host SDK directory and run the following command:
-sudo npm install
+**sudo npm install**
 
 #### Step4:
 In the Mustang Host root directory, run the following command :
-sudo node mvt_host.js
+**sudo node mvt_host.js**
 
 ## Host API
          
