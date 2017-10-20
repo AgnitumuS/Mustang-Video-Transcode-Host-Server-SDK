@@ -8,29 +8,20 @@ The SDK Released under Open Source License.SDK can be installed in a few steps.
 Note: Please run all the following steps as the root user. Create the path /share/Public in the system and put the Mustang Host project inside this path.
 
 #### Step1:
-Install NodeJS in your system with the following command: apt-get update curl -sL https://deb.nodesource.com/setup_7.x | bash - && apt-get install -y nodejs
+Download the Mustang Host project from https://github.com/IEI-dev/Mustang-Video-Transcode-Host-Server-SDK on github
 
 #### Step2:
-Download the Mustang Host project from the specified URL on github.
+Install NodeJS in your system with the following command: 
+	a. sudo  apt-get update 
+	b. curl -sL https://deb.nodesource.com/setup_7.x | bash - && apt-get install -y nodejs
 
 #### Step3:
-cd to the Mustang Host root directory and run the following command: npm install
-npm install
+Change to the Mustang Host SDK directory and run the following command:
+sudo npm install
 
 #### Step4:
-Inside the Mustang Host root directory, cd to driver folder and run the following command to install the driver: make; make install
-
-#### Step5:
-Reboot your system after the driver installation is completed.
-
-#### Step6:
-In the Mustang Host root directory, run the following command: node app.js
-
-#### Step7:
-Wait until you see the “Please reboot your system” message. Reboot your system.
-
-#### Step8:
-After rebooting your system, go to the Mustang Host root directory and run the following command: node app.js
+In the Mustang Host root directory, run the following command :
+sudo node mvt_host.js
 
 ## Host API
          
