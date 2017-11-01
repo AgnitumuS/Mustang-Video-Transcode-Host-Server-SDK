@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var fs = require('fs');
 var path = require('path');
 var config = require('../../config/config');
@@ -41,7 +40,6 @@ function mountPath(inputPath, apiMethod, callback) {
             var mountCandidate = path.basename(sourceDirPath) + "_temp0";
             var filename = path.basename(inputPath);
             var targetPath = "";
-
             db.serialize(function() {
                 db.get("SELECT * from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
                     if (data == undefined) {
@@ -60,7 +58,8 @@ function mountPath(inputPath, apiMethod, callback) {
                                         console.log(err);
                                     }
                                 });
-                                exec("mount -o bind " + sourceDirPath + " " + targetPath, (err, stdout, stderr) => {
+                                var cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                                exec(cmd, (err, stdout, stderr) => {
                                     if (err) {
                                         console.error(err);
                                     }
@@ -73,35 +72,36 @@ function mountPath(inputPath, apiMethod, callback) {
                             } else if (apiMethod == "file2file" && !fs.existsSync(sourceDirPath + "/output")) {
                                 createOutput(sourceDirPath);
                             }
-                        	resolve(config.hostMountedDir + "/" + mountCandidate + "/" + filename);
+                            resolve(config.hostMountedDir + "/" + mountCandidate + "/" + filename);
                         });
                     } else {
                         if (!fs.existsSync(config.hostMountedDir + "/" + data.mountedFolder)) {
-                        	targetPath = config.hostMountedDir + "/" + data.mountedFolder;
-							fs.mkdir(config.hostMountedDir + "/" + data.mountedFolder, function(err) {
-							    if (err) {
-							        console.log(err);
-							    }
-							});
-							exec("mount -o bind " + sourceDirPath + " " + targetPath, (err, stdout, stderr) => {
-							    if (err) {
-							        console.error(err);
-							    }
-							    console.log(stdout);
-							});
+                            targetPath = config.hostMountedDir + "/" + data.mountedFolder;
+                            fs.mkdir(config.hostMountedDir + "/" + data.mountedFolder, function(err) {
+                                if (err) {
+                                    console.log(err);
+                                }
+                            });
+                            var cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                            exec(cmd, (err, stdout, stderr) => {
+                                if (err) {
+                                    console.error(err);
+                                }
+                                console.log(stdout);
+                            });
 
-							if (apiMethod == "file2file" && !fs.existsSync(sourceDirPath + "/output")) {
-							    createOutput(sourceDirPath);
-							}
-							resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
+                            if (apiMethod == "file2file" && !fs.existsSync(sourceDirPath + "/output")) {
+                                createOutput(sourceDirPath);
+                            }
+                            resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
                         } else {
-                        	resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
+                            resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
                         }
                     }
                 });
             });
         } else {
-        	resolve(inputPath);
+            resolve(inputPath);
         }
     });
 }
@@ -122,7 +122,7 @@ function createOutput(sourceDirPath) {
         if (err) {
             console.log(err);
         }
-        exec("chmod 777 -R " + sourceDirPath + "/output", (err, stdout, stderr) => {
+        exec('chmod 777 -R ' + '"' + sourceDirPath + '/output"', (err, stdout, stderr) => {
             if (err) {
                 console.error(err);
             }

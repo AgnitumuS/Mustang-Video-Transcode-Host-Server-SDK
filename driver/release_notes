@@ -8,20 +8,36 @@ VID /DID /SVID/SDID	Interface			Print Name
 1fc9/4022/1186/4d00	SFP+ APM QT2025			"D-Link DXE-810S 10GbE SFP+ Ethernet Adapter"
 1fc9/4022/1043/8709	SFP+ APM QT2025			"ASUS XG-C100F 10GbE SFP+ Ethernet Adapter"
 1fc9/4022/1432/8103	SFP+ APM QT2025			"Edimax 10 Gigabit Ethernet SFP+ PCI Express Adapter"
-1fc9/4024/1fc9/3015	10GBASE-T Marvell MV88X3110	"TN9210 10GBase-T Ethernet Adapter"
 1fc9/4025/1fc9/3015	NBASE-T Aquantia AQR105		"TN9510 10GBase-T/NBASE-T Ethernet Adapter"
 1fc9/4025/1186/2900	10GBASE-T Aquantia AQ2104	"D-Link DXE-810T 10GBase-T Ethernet Adapter"
 1fc9/4025/1432/8102	NBASE-T Aquantia AQR105		"Edimax 10 Gigabit Ethernet PCI Express Adapter"
 1fc9/4026/1fc9/3015	SFP+ TI TLK10232		"TN9610 10GbE SFP+ Ethernet Adapter"
-1fc9/4027/1fc9/3015	NBASE-T Marvell MV88X3310	"TN9710P 10GBase-T/NBASE-T Ethernet Adapter"
-1fc9/4027/1fc9/8104	NBASE-T Marvell MV88X3310	"Edimax 10 Gigabit Ethernet PCI Express Adapter"
-1fc9/4527/1fc9/3015	5GBASE-T Marvell MV88E2010	"TN9710Q 5GBase-T/NBASE-T Ethernet Adapter"
 
-- Kernel versions supported: 2.6.32-4.x
+- Kernel versions supported: 2.6.32-4.12
+
+Version 0.3.6.14.3 2017/09/24
+=============================
+- Fix RX Flow Control
+- Fix ethtool mtu on Ubuntu 17.04
+- Improve single PHY build code
+- Fix compilation error for CentOS 7.4
+
+Version 0.3.6.14.2 2017/07/18
+=============================
+- Fix missing PCP bits in VLAN tag
+
+Version 0.3.6.14.1 2017/06/27
+=============================
+- Add CX4 card support (TN9030)
+- Fix ethtool speed reporting for SFP+ cards
+- Fix Hibernate support
+- Support Flow Control for TN9710 cards
+- Update PHY firmware to 0.2.8.0 for TN9710 cards
+- Support Thunderbolt Surprise Remove
+- Fix Compilation failed for kernel 4.11
 
 Version 0.3.6.14 2017/03/08
 ===========================
-- Support for Marvell 88X3310P and 88E2010P PHYs
 
 Version 0.3.6.13 2016/09/07
 ===========================
@@ -29,7 +45,7 @@ Version 0.3.6.13 2016/09/07
 - Driver debugging options
 - Support RHEL6.8
 - Support kernel 4.7
-- Firmware update for AQR105 and MV88X3110
+- Firmware update for AQR105
 
 Version 0.3.6.12 2015/02/19
 ===========================
@@ -66,7 +82,6 @@ Version 0.3.6.10.1 2013/12/25
 
 Version 0.3.6.10 2013/11/4
 ===========================
-- Marvell PHY FW 2.4.1.0 
 - False H/W tcp checksum error work around 
 - Kernel 3.11 support 
 - Multiple cards support 

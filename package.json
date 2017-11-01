@@ -15,6 +15,7 @@
     "moment": "^2.18.1",
     "morgan": "^1.8.2",
     "network": "^0.3.2",
+    "ping": "^0.2.2",
     "request": "^2.81.0",
     "rwlock": "^5.0.0",
     "serve-favicon": "^2.4.3",

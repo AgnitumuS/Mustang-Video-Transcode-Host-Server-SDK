@@ -19,23 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var db = require('../../db/dbSqlite').sqliteDB;
 
-function deleteJob (jobid) {
-	return new Promise(function(resolve, reject) {
-		db.serialize(function() {
-			db.run("DELETE FROM jobs WHERE jobid = " + jobid);
-			db.run("DELETE FROM outputs WHERE jobid = " + jobid);
-			db.all("SELECT * from jobs", function(err, rows) {
-				if (err) {
-					console.log(err);
-					resolve({success : false});
-				}
-				resolve({success : true});
-			});
-		});
-	});
+function deleteJob(jobid) {
+    return new Promise(function(resolve, reject) {
+        db.serialize(function() {
+            db.run("DELETE FROM jobs WHERE jobid = " + jobid);
+            db.run("DELETE FROM outputs WHERE jobid = " + jobid);
+            db.all("SELECT * from jobs", function(err, rows) {
+                if (err) {
+                    console.log(err);
+                    resolve({
+                        success: false
+                    });
+                }
+                resolve({
+                    success: true
+                });
+            });
+        });
+    });
 }
 
 module.exports = deleteJob;

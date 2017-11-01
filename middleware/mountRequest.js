@@ -19,48 +19,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var request = require('request');
 var cardMap = require('../config/cardMap');
 
 function mountRequest() {
-	for (var key in cardMap) {
-		var addrArray = cardMap[key].getAllIPAddr();
-		var portArray = cardMap[key].getAllPort();
-		for (var i = 0; i < addrArray.length; i++) {
-			var targetURL = "http://" + addrArray[i] + ":" + portArray[i] + "/submachine/cardUsing";
-			requestCall(targetURL, addrArray[i]);
-		}
-	}
+    for (var key in cardMap) {
+        var addrArray = cardMap[key].getAllIPAddr();
+        var portArray = cardMap[key].getAllPort();
+        for (var i = 0; i < addrArray.length; i++) {
+            var targetURL = "http://" + addrArray[i] + ":" + portArray[i] + "/submachine/cardUsing";
+            requestCall(targetURL, addrArray[i]);
+        }
+    }
 }
 
-function requestCall(targetURL, hostIP) {
-	ipaddress = hostIP.split('.');
-	ipaddress[3] = "1";
-	ipaddress = ipaddress.join(".");
+function requestCall(targetURL, hostIP, cardid, cpuid) {
+    if (cardid != undefined) {
+        targetURL = "http://" + cardMap[cardid].cpu(cpuid).getIPAddr() + ":" + cardMap[cardid].cpu(cpuid).getPort() + "/submachine/cardUsing";
+    }
+    ipaddress = hostIP.split('.');
+    ipaddress[3] = "1";
+    ipaddress = ipaddress.join(".");
 
-	var data = {
-	    title: "mountVideo",
-	    data: {
-	        hostName: "mvt",
-	        hostPassword: "anywaytest",
-	        hostIP: ipaddress,
-	        hostFolderName: "share"
-	    }
-	}
+    var data = {
+        title: "mountVideo",
+        data: {
+            hostName: "mvt",
+            hostPassword: "anywaytest",
+            hostIP: "192.168.100.1",
+            hostFolderName: "share"
+        }
+    }
 
-	request({
+    request({
         url: targetURL,
         method: 'POST',
         json: data,
-        timeout : 3000
+        timeout: 3000
     }, function(error, response, body) {
-    	if (error) {
-    		console.log("Request to " + targetURL + " failed!");
-    	} else {
-	     	// console.log(body);   		
-    	}
-    });	
+        if (error) {
+            // console.log("Request to " + targetURL + " failed!");
+        } else {
+            // console.log(body);
+        }
+    });
 }
 
-module.exports = mountRequest;
+module.exports = {
+    mountAllCards: mountRequest,
+    mountOneCard: requestCall
+}

@@ -19,20 +19,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var db = require('../../db/dbSqlite').sqliteDB;
 var generateTimeStamp = require('./generateTimeStamp');
 
 function updaeStatusToTerminated(jobID) {
-	db.serialize(function() {
-		db.run("BEGIN TRANSACTION");
-		db.run("UPDATE jobs SET " + 
-							"endtime = " + "'" + generateTimeStamp() + "', " +
-							"status = '4'," +
-							"statusmessage = 'Terminated'" +
-							" WHERE jobid = " + jobID);
-		db.run("COMMIT TRANSACTION");
-	});
+    db.serialize(function() {
+        db.run("BEGIN TRANSACTION");
+        db.run("UPDATE jobs SET " +
+            "endtime = " + "'" + generateTimeStamp() + "', " +
+            "status = '4'," +
+            "statusmessage = 'Terminated'" +
+            " WHERE jobid = " + jobID);
+        db.run("COMMIT TRANSACTION");
+    });
 }
 
 module.exports = updaeStatusToTerminated;

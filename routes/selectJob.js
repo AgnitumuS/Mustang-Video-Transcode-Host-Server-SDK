@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var selectJobAPI = express.Router();
 var fs = require('fs');
@@ -28,21 +27,23 @@ var config = require('../config/config');
 
 // body : { path : url }
 selectJobAPI.route('/')
-	.get(function(req, res) {
-		res.json({Message : "This is API /selectJob"});
-	})
-	.post(function(req, res) {
-		// body : { path : url }
-		var sorceDirPath = path.dirname(req.body.path);
-		var mountCandidate = path.basename(sorceDirPath);
-		var filename = path.basename(req.body.path);
-		res.json(path.basename(req.body.path));
+    .get(function(req, res) {
+        res.json({
+            Message: "This is API /selectJob"
+        });
+    })
+    .post(function(req, res) {
+        // body : { path : url }
+        var sorceDirPath = path.dirname(req.body.path);
+        var mountCandidate = path.basename(sorceDirPath);
+        var filename = path.basename(req.body.path);
+        res.json(path.basename(req.body.path));
 
-		fs.mkdir(config.hostMountedDir, function(err) {
-			if (err) {
-				console.log(err);
-			}
-		});
-	});
+        fs.mkdir(config.hostMountedDir, function(err) {
+            if (err) {
+                console.log(err);
+            }
+        });
+    });
 
 module.exports = selectJobAPI;

@@ -15,43 +15,12 @@ PM_DIR        := /etc/pm/config.d
 RESUME_FILE   := ._RESUME_
 MODULE_DIR    :=M=$(PWD)
 DRV_NAME      := tn40xx
-JUMO_OBJS     := tn40.o MV88X3120_phy.o MV88X3120_phy_Linux.o MV88X3310_phy.o MV88X3310_phy_Linux.o \
-                 QT2025_phy.o QT2025_phy_Linux.o TLK10232_phy.o TLK10232_phy_Linux.o \
-                 AQR105_phy.o AQR105_phy_Linux.o
-JUMBO_PHYS    := -DPHY_MV88X3120 -DPHY_MV88X3310 -DPHY_MV88E2010 -DPHY_QT2025 -DPHY_TLK10232 -DPHY_AQR105
+JUMO_OBJS     := tn40.o
+JUMBO_PHYS    := 
 DRV_NAME      := tn40xx
 DRB_OBJS      := tn40.o CX4.o CX4_Linux.o
 RESUME ?= YES
 
-ifeq ($(MV88X3120),YES)
-	DRB_OBJS += MV88X3120_phy.o MV88X3120_phy_Linux.o
-	OPT_PHYS += -DPHY_MV88X3120
-endif
-
-ifeq ($(MV88X3310),YES)
-	DRB_OBJS += MV88X3310_phy.o MV88X3310_phy_Linux.o
-	OPT_PHYS += -DPHY_MV88X3310
-endif
-
-ifeq ($(MV88E2010),YES)
-	DRB_OBJS += MV88E2010_phy.o MV88E2010_phy_Linux.o
-	OPT_PHYS += -DPHY_MV88E2010
-endif
-
-ifeq ($(QT),YES)
-	DRB_OBJS += QT2025_phy.o QT2025_phy_Linux.o
-	OPT_PHYS += -DPHY_QT2025
-endif
-
-ifeq ($(TL),YES)
-	DRB_OBJS += TLK10232_phy.o TLK10232_phy_Linux.o
-	OPT_PHYS += -DPHY_TLK10232
-endif
-
-ifeq ($(AQ),YES)
-	DRB_OBJS += AQR105_phy.o AQR105_phy_Linux.o
-	OPT_PHYS += -DPHY_AQR105
-endif
 #
 # Resume
 #
@@ -125,15 +94,9 @@ help usage:
 	@echo "    default        - all"
 	@echo
 	@echo "  Available options:" 
-	@echo "    MV88X3120=YES  - include Marvel MV88X3120 phy"
-	@echo "    MV88X3310=YES  - include Marvel MV88X3310 phy"
-	@echo "    MV88E2010=YES  - include Marvel MV88E2010 phy"
-	@echo "    QT=YES         - include QT2025 phy"
-	@echo "    TL=YES         - include TI phy"
-	@echo "    AQ=YES         - include Aquantia phy"
-	@echo "    RESUME=NO     - do not support in driver system resume"
+	@echo "    RESUME=NO      - do not support in driver system resume"
 	@echo "    EEE=YES        - support EEE"
-	@echo "    default        - phys = all, RESUME=NO (redhat RESUME=YES)"
+	@echo "    default        - phys = all, RESUME=YES, EEE=NO"
 
 install: $(DRV_NAME).ko
 	install -d $(INSTDIR)

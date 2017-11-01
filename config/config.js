@@ -19,13 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var path = require('path');
 
 module.exports = {
-	externalIP : "",
-	hostMountedDir : path.dirname(__dirname) + "/mvt_video",
-	cardMountedDir : "/data",
-	routeMapPath : "/home/route.sh",
-	cardids : []
+    externalIP: "",
+    hostMountedDir: path.dirname(__dirname) + "/mvt_video",
+    cardMountedDir: "/data",
+    routeMapPath: "/usr/local/mvt_data/route.sh",
+    platform: "",
+    version: "1.04",
+    cardids: [],
+    detectedCards: {},
+    interfaceIPGroup: {},
+    mustangInterfaces: [],
+    cardPorts: {
+        qts: 8080,
+        rtmp: 1934,
+        icecast: 8181,
+        http: 8019,
+        faye: 8300,
+        container_ffmpeg: 9101,
+        container_gstreamer: 9100
+    }
 }

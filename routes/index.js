@@ -19,48 +19,56 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var router = express.Router();
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
+    res.render('index', {
+        title: 'Express'
+    });
 });
 
 var apiIndex = {
-	cardinfo : require('./cardinfo'),
-	cards : require('./cards'),
-	cginfo :　require('./cginfo'),
-	clearTable : require('./clearTable'),
-	cpujobinfo : require('./cpujobinfo').cpujobinfoAPI,
-	error : require('./error'),
-	errorlog : require('./errorlog'),
-	file : require('./file'),
-	mediainfo : require('./mediainfo'),
-	selectJob : require('./selectJob'),
-	terminate : require('./terminate.js'),
-	terminateJobs : require('./terminateJobs.js'),
-	getconfig : require('./getconfig'),
-	getfiles : require('./getfiles'),
-	getIP : require('./getIP'),
-	homeDir : require('./homeDir'),
-	jobs : require('./jobs'),
-	listDir : require('./listDir'),
-	live : require('./live'),
-	vod : require('./vod')
+    cardinfo: require('./cardinfo'),
+    cards: require('./cards'),
+    cginfo: 　require('./cginfo'),
+    clearTable: require('./clearTable'),
+    cpujobinfo: require('./cpujobinfo').cpujobinfoAPI,
+    cpuTempInfo: require('./cpuTempInfo'),
+    error: require('./error'),
+    errorlog: require('./errorlog'),
+    file: require('./file'),
+    mediainfo: require('./mediainfo'),
+    memUsageInfo: require('./memUsageInfo'),
+    selectJob: require('./selectJob'),
+    terminate: require('./terminate.js'),
+    terminateJobs: require('./terminateJobs.js'),
+    getconfig: require('./getconfig'),
+    getfiles: require('./getfiles'),
+    getIP: require('./getIP'),
+    homeDir: require('./homeDir'),
+    jobs: require('./jobs'),
+    listDir: require('./listDir'),
+    live: require('./live'),
+    trafficInfo: require('./trafficInfo'),
+    updateNetworkConfig: require('./updateNetworkConfig'),
+    updateQtsName: require('./updateQtsName'),
+    vod: require('./vod')
 }
 
-//******************** Formal API ***********************//
+//******************** API ROUTE ***********************//
 router.use('/cardinfo', apiIndex.cardinfo);
 router.use('/cards', apiIndex.cards);
 router.use('/cginfo', apiIndex.cginfo);
 router.use('/clearTable', apiIndex.clearTable);
 router.use('/cpujobinfo', apiIndex.cpujobinfo);
+router.use('/cpuTempInfo', apiIndex.cpuTempInfo);
 router.use('/error', apiIndex.error);
 router.use('/errorlog', apiIndex.errorlog);
 router.use('/file/jobs', apiIndex.file);
 router.use('/mediainfo', apiIndex.mediainfo);
+router.use('/memoryUsage', apiIndex.memUsageInfo);
 router.use('/selectJob', apiIndex.selectJob);
 router.use('/terminate', apiIndex.terminate);
 router.use('/terminateJobs', apiIndex.terminateJobs);
@@ -71,6 +79,9 @@ router.use('/homeDir', apiIndex.homeDir);
 router.use('/jobs', apiIndex.jobs);
 router.use('/listDir', apiIndex.listDir);
 router.use('/live/jobs', apiIndex.live);
+router.use('/trafficInfo', apiIndex.trafficInfo);
+router.use('/updateNetworkConfig', apiIndex.updateNetworkConfig);
+router.use('/updateQtsName', apiIndex.updateQtsName);
 router.use('/vod/jobs', apiIndex.vod);
 
 module.exports = router;

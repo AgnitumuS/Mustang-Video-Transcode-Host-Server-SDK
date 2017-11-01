@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var terminateAPI = express.Router();
 var request = require('request');
@@ -29,38 +28,47 @@ var cardMap = require('../config/cardMap');
 var terminateJob = require('./tools/toolsIdx').terminateJob;
 
 terminateAPI.route('/')
-	.get(function(req, res) {
-		res.json({Message : "terminateAPI"});
-	})
-	.post(function(req, res) {
-		var array = req.body.jobsArray;
-		var promiseArr = [];
-		for (var i = 0; i < array.length; i++) {
-			promiseArr.push(Promise.resolve(terminateJob(array[i])));
-		}
+    .get(function(req, res) {
+        res.json({
+            Message: "terminateAPI"
+        });
+    })
+    .post(function(req, res) {
+        var array = req.body.jobsArray;
+        Promise.resolve(singleRequest(array, 0, []))
+            .then(function(result) {
+                res.json(result);
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+    });
 
-		Promise.all(promiseArr)
-			.then(function(allData) {
-				return new Promise(function(resolve, reject) {
-					var result = [];
-					for (var i = 0; i < allData.length; i++) {
-						var obj = {
-							jobId : array[i],
-							message : allData[i]
-						}
-						result.push(obj);
-					}
-					resolve(result);
-				});
-			})
-			.then(function(result) {
-				res.json(result);
-			})
-			.catch(function(err) {
-				console.log(err);
-				res.statusCode = 500;
-				res.json({Message : "Internal Server Error!"});
-			});
-	});
+function singleRequest(array, index, resultArray) {
+    return new Promise(function(resolve, reject) {
+            if (index == array.length) {
+                resolve(resultArray);
+            } else {
+                return Promise.resolve(terminateJob(array[index]))
+                    .then(function(result) {
+                        var obj = {
+                            jobId: array[index],
+                            message: result
+                        }
+                        resultArray.push(obj);
+                        return Promise.resolve(singleRequest(array, index + 1, resultArray))
+                            .then(function(data) {
+                                resolve(data);
+                            })
+                            .catch(function(err) {
+                                console.log(err);
+                            });
+                    })
+            }
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
+}
 
 module.exports = terminateAPI;

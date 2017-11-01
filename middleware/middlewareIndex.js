@@ -19,17 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var middlewareIndex = {
-	checkCardOwnership : require('./checkCardOwnership'),
-	cleanMountFolder : require('./cleanMountFolder'),
-	cors : require('./cors'),
-	faye : require('./faye'),
-	getExternalIP : require('./getExternalIP'),
-	getInactiveNetworkInterfaces : require('./getInactiveNetworkInterfaces'),
-	loadCards : require('./loadCards'),
-	loadPortInfo : require('./loadPortInfo'),
-	mountRequest : require('./mountRequest')
+    buildIPTable: require('./buildIPTable'),
+    cleanMountFolder: require('./cleanMountFolder'),
+    cors: require('./cors'),
+    detectedCardsRecord: require('./detectedCardsRecord'),
+    faye: require('./faye'),
+    getBridgeInterfaces: require('./getBridgeInterfaces'),
+    getExternalIP: require('./getExternalIP'),
+    getInactiveNetworkInterfaces: require('./getInactiveNetworkInterfaces'),
+    getNasInterfacesName: require('./getNasInterfacesName'),
+    getNetworkInterfaces: require('./getNetworkInterfaces'),
+    getPlatform: require('./getPlatform'),
+    ipMacMap: require('./ipMacMap'),
+    iscDhcpInterface: require('./iscDhcpInterface'),
+    loadCards: require('./loadCards'),
+    loadPortInfo: require('./loadPortInfo'),
+    macIPMap: require('./macIPMap'),
+    mapIPAddr: require('./mapIPAddr'),
+    mountRequest: require('./mountRequest'),
+    needToRecover: require('./needToRecover'),
+    pingMustangs: require('./pingMustangs'),
+    printProgressBar: require('./printProgressBar'),
+    queryingCards: require('./queryingCards'),
+    recoverLostedInterfaces: require('./recoverLostedInterfaces'),
+    sortCardMap: require('./sortCardMap'),
+    writeToDhcpdConf: require('./writeToDhcpdConf'),
+    writeToSmbConf: require('./writeToSmbConf')
 }
 
 module.exports = middlewareIndex;

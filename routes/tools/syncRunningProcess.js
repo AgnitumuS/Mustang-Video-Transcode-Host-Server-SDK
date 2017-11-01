@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var request = require('request');
 var cardMap = require('../../config/cardMap');
 var db = require('../../db/dbSqlite').sqliteDB;
@@ -29,84 +28,88 @@ var generateTimeStamp = require('./generateTimeStamp');
 var getJobByStatus = require('./getJobByStatus');
 
 function runInterval() {
-	setInterval(function() {
-		syncRunningProcess();
-	}, 10 * 60 * 1000);	
+    setInterval(function() {
+        syncRunningProcess();
+    }, 10 * 60 * 1000);
 }
 
 function syncRunningProcess() {
-	return Promise.all([getJobByStatus("1"), getCPUjobinfo()])
-		.then(function(allData) {
-			var jobArray = allData[0];
-			var cpujobinfo = allData[1];
-			return new Promise(function(resolve, reject) {
-				var i = jobArray.length;
-				while(i--) {
-					var result = checkJobExist(cpujobinfo, jobArray[i].jobId);
-					if (result == false) {
-						jobArray.splice(i, 1);
-					}
-				}
-				resolve(jobArray);
-			});
-		})
-		.catch(function(err) {
-			if (err) {
-				console.log(err);
-			}
-		})
+    return Promise.all([getJobByStatus("1"), getCPUjobinfo()])
+        .then(function(allData) {
+            var jobArray = allData[0];
+            var cpujobinfo = allData[1];
+            return new Promise(function(resolve, reject) {
+                var i = jobArray.length;
+                while (i--) {
+                    var result = checkJobExist(cpujobinfo, jobArray[i].jobId);
+                    if (result == false) {
+                        jobArray.splice(i, 1);
+                    }
+                }
+                resolve(jobArray);
+            });
+        })
+        .catch(function(err) {
+            if (err) {
+                console.log(err);
+            }
+        })
 }
 
 function getCPUjobinfo() {
-	var cards = Object.keys(cardMap);
-	var promiseArr = [];
-	for (var i = 0; i < cards.length; i++) {
-		promiseArr.push(Promise.resolve(cpuJobInfoOneCard(cards[i])));
-	}
+    var cards = Object.keys(cardMap);
+    if (cards == undefined || cards.length == 0) {
+        return;
+    } else {
+        var promiseArr = [];
+        for (var i = 0; i < cards.length; i++) {
+            promiseArr.push(Promise.resolve(cpuJobInfoOneCard(cards[i])));
+        }
 
-	return Promise.all(promiseArr)
-		.then(function(allData) {
-			return new Promise(function(resolve, reject) {
-				resolve(allData);
-			})
-		})
-		.catch(function(err) {
-			console.log(err);
-		});
+        return Promise.all(promiseArr)
+            .then(function(allData) {
+                return new Promise(function(resolve, reject) {
+                    resolve(allData);
+                })
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+    }
 }
 
 function checkJobExist(array, jobid) {
-	if (jobid == undefined) {
-		return false;
-	}
-	for (var i = 0; i < array.length; i++) {
-		for (var j = 0; j < array[i].cpujobinfo.length; j++) {
-			for (var k = 0; k < array[i].cpujobinfo[j].jobs.length; k++) {
-				if (array[i].cpujobinfo[j].jobs[k].jobId == jobid) {
-					return true;
-				}
-			}
-		}
-	}
-	changeJobStatus(jobid);
-	return false;
+    if (array == undefined || jobid == undefined) {
+        return false;
+    }
+    for (var i = 0; i < array.length; i++) {
+        for (var j = 0; j < array[i].cpujobinfo.length; j++) {
+            for (var k = 0; k < array[i].cpujobinfo[j].jobs.length; k++) {
+                if (array[i].cpujobinfo[j].jobs[k].jobId == jobid) {
+                    return true;
+                }
+            }
+        }
+    }
+    changeJobStatus(jobid);
+    return false;
 }
 
 function changeJobStatus(jobid) {
-	db.get("SELECT * from jobs WHERE jobid = " + jobid, function(err, jobRow) {
-		if (jobRow !== undefined) {
-			unmountPath(jobRow.input_filepath);
-			if (jobRow.endtime == "" && jobRow.status == 1) {
-				db.serialize(function() {
-					db.run("UPDATE jobs SET " + 
-										"endtime = " + "'" + generateTimeStamp() + "', " +
-										"status = '2'," +
-										"statusmessage = 'Completed'" +
-										" WHERE jobid = " + jobid);
-				});
-			}
-		}
-	});
+    db.get("SELECT * from jobs WHERE jobid = " + jobid, function(err, jobRow) {
+        if (jobRow !== undefined) {
+            unmountPath(jobRow.input_filepath);
+            if (jobRow.endtime == "" && jobRow.status == 1) {
+                db.serialize(function() {
+                    db.run("UPDATE jobs SET " +
+                        "endtime = " + "'" + generateTimeStamp() + "', " +
+                        "status = '2'," +
+                        "statusmessage = 'Completed'" +
+                        " WHERE jobid = " + jobid);
+                });
+            }
+        }
+    });
 }
 
 runInterval();

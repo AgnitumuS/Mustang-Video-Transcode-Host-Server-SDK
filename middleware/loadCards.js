@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var cardMap = require('../config/cardMap');
 var MVT = require('../class/card');
 var loadPortInfo = require('./loadPortInfo');
@@ -29,44 +28,44 @@ function loadCards(cardsInfo) {
         return;
     }
     for (var i = 0; i < cardsInfo.length - 1; i++) {
-    	var min = i;
-    	for (var j = i + 1; j < cardsInfo.length; j++) {
-    		cardidateA = cardsInfo[i].cardid.replace("CARD", "");
-    		cardidateB = cardsInfo[j].cardid.replace("CARD", "");
-    		if (Number.parseInt(cardidateA, 16) > Number.parseInt(cardidateB, 16)) {
-    			min = j;
-    		}
-    	}
-    	var temp = cardsInfo[i];
-    	cardsInfo[i] = cardsInfo[min];
-    	cardsInfo[min] = temp;
+        var min = i;
+        for (var j = i + 1; j < cardsInfo.length; j++) {
+            cardidateA = cardsInfo[i].cardid.replace("CARD", "");
+            cardidateB = cardsInfo[j].cardid.replace("CARD", "");
+            if (Number.parseInt(cardidateA, 16) > Number.parseInt(cardidateB, 16)) {
+                min = j;
+            }
+        }
+        var temp = cardsInfo[i];
+        cardsInfo[i] = cardsInfo[min];
+        cardsInfo[min] = temp;
     }
 
-	for (var i = 0; i < cardsInfo.length; i++) {
-		if (cardsInfo[i].cpu.length == 2) {
-			var card = createCard(cardsInfo[i].cardid, cardsInfo[i].cpu[0].cpuid, cardsInfo[i].cpu[1].cpuid);
-			cardMap[card.cardID()] = card;
-			card.setInfo(cardsInfo[i]);
-			setCPUConfig(cardsInfo[i]);
-		}
-	}
-	loadPortInfo();
+    for (var i = 0; i < cardsInfo.length; i++) {
+        if (cardsInfo[i].cpu.length == 2) {
+            var card = createCard(cardsInfo[i].cardid, cardsInfo[i].cpu[0].cpuid, cardsInfo[i].cpu[1].cpuid);
+            cardMap[card.cardID()] = card;
+            card.setInfo(cardsInfo[i]);
+            setCPUConfig(cardsInfo[i]);
+        }
+    }
+    loadPortInfo();
 }
 
 function createCard(cardID, cpu1ID, cpu2ID) {
-	var card = new MVT(cardID, cpu1ID, cpu2ID);
-	return card;
+    var card = new MVT(cardID, cpu1ID, cpu2ID);
+    return card;
 }
 
 function setCPUConfig(input) {
-	var cardid = input.cardid;
-	for (var j = 0; j < input.cpu.length; j++) {
-		if (j == 0) {
-			cardMap[cardid].cpu1().setConfig(input.cpu[j]);
-		} else if (j == 1) {
-			cardMap[cardid].cpu2().setConfig(input.cpu[j]);
-		}
-	}
+    var cardid = input.cardid;
+    for (var j = 0; j < input.cpu.length; j++) {
+        if (j == 0) {
+            cardMap[cardid].cpu1().setConfig(input.cpu[j]);
+        } else if (j == 1) {
+            cardMap[cardid].cpu2().setConfig(input.cpu[j]);
+        }
+    }
 }
 
 module.exports = loadCards;

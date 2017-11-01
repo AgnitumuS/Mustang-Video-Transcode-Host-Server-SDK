@@ -19,19 +19,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var clearTableAPI = express.Router();
 var db = require('../db/dbSqlite').sqliteDB;
 
 clearTableAPI.route('/')
-	.get(function(req, res) {
-		db.serialize(function() {
-			db.run("DELETE FROM jobs");
-			db.run("DELETE FROM outputs");
-			db.run("DELETE FROM mountTable");
-			res.json({Message : "Table have been cleared successfully!"});
-		});
-	});
+    .get(function(req, res) {
+        db.serialize(function() {
+            db.run("DELETE FROM jobs");
+            db.run("DELETE FROM outputs");
+            db.run("DELETE FROM mountTable");
+            res.json({
+                Message: "Table have been cleared successfully!"
+            });
+        });
+    });
 
 module.exports = clearTableAPI;

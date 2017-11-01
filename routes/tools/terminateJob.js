@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var request = require('request');
 var db = require('../../db/dbSqlite').sqliteDB;
 var config = require('../../config/config');
@@ -29,50 +28,60 @@ var updateStatusToTerminated = require('./updateStatusToTerminated');
 var terminateJob = function(jobid) {
     var targetURL = "";
     var data = {
-    	name : jobid
+        name: jobid
     }
     return new Promise(function(resolve, reject) {
-		db.serialize(function() {
-			db.get("SELECT cardid, cpu_cpuid from jobs WHERE jobid = " + data.name, function(err, result) {
-				if (result == undefined) {
-					resolve({Message : "Cannot find jobid, please check again!"});
-				} else {
-					var cardid = result.cardid;
-					var cpuid = result.cpu_cpuid;
+            db.serialize(function() {
+                db.get("SELECT cardid, cpu_cpuid from jobs WHERE jobid = " + data.name, function(err, result) {
+                    if (result == undefined) {
+                        resolve({
+                            Message: "Cannot find jobid, please check again!"
+                        });
+                    } else {
+                        var cardid = result.cardid;
+                        var cpuid = result.cpu_cpuid;
 
-					targetURL = "http://" + cardMap[cardid].cpu(cpuid).getIPAddr() + ":" + cardMap[cardid].cpu(cpuid).getPort() + "/submachine/removeProcess";
-					resolve(targetURL);
-				}
-			});
-		});
-    })
-	.then(function(targetURL) {
-    	return new Promise(function(resolve, reject) {
-			if (targetURL == undefined) {
-				resolve({'success' : false});
-			} else {
-				request({
-				    url: targetURL,
-				    method: 'POST',
-				    json: data,
-				    timeout : 2000
-				}, function(error, response, body) {
-				    if (error) {
-				        console.log(error);
-				        resolve(error);
-				    } else {
-				    	if (body.message == "Success") {
-				    		updateStatusToTerminated(jobid);
-				    		resolve({'success' : true});
-				    	} else if (body.message == "Fail") {
-				    		resolve({'success' : false});
-				    	}
-				    	resolve(undefined);
-				    }
-				});
-			}
-    	});
-    });
+                        targetURL = "http://" + cardMap[cardid].cpu(cpuid).getIPAddr() + ":" + cardMap[cardid].cpu(cpuid).getPort() + "/submachine/removeProcess";
+                        resolve(targetURL);
+                    }
+                });
+            });
+        })
+        .then(function(targetURL) {
+            return new Promise(function(resolve, reject) {
+                if (targetURL == undefined) {
+                    resolve({
+                        'success': false
+                    });
+                } else {
+                    request({
+                        url: targetURL,
+                        method: 'POST',
+                        json: data,
+                        timeout: 2000
+                    }, function(error, response, body) {
+                        if (error) {
+                            console.log(error);
+                            resolve(error);
+                        } else {
+                            if (body.message == "Success") {
+                                updateStatusToTerminated(jobid);
+                                resolve({
+                                    'success': true
+                                });
+                            } else if (body.message == "Fail") {
+                                var result = {
+                                    'success': false,
+                                    'message': body.data
+                                }
+                                resolve(result);
+                            }
+                            resolve(undefined);
+                        }
+                    });
+                }
+            });
+        });
 }
 
 module.exports = terminateJob;

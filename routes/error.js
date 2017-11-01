@@ -19,50 +19,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var errorAPI = express.Router();
 var db = require('../db/dbSqlite').sqliteDB;
 var tools = require('./tools/toolsIdx');
 
 errorAPI.route('/')
-	.get(function(req, res) {
-		db.serialize(function() {
-			var out = [];
-			db.each("SELECT * from jobs WHERE error = " + req.query.error, function(err, row) {
-				if (row.error == true) {
-					db.run("UPDATE jobs SET " +
-										"status = '3'," +
-										"statusmessage = 'Failed'" +
-										" WHERE jobid = " + row.jobid);
-					var obj = {
-						jobId : row.jobid,
-						input : row.input_filepath,
-						starttime : row.starttime,
-						status : '3',
-						statusmessage : "Failed",
-						error : row.error,
-						errorlog : row.errorlog,
-						cpu : row.cpu_cpuid
-					};
-					out.push(obj);					
-				} else {
-					var obj = {
-						jobId : row.jobid,
-						input : row.input_filepath,
-						starttime : row.starttime,
-						status : row.status,
-						statusmessage : row.statusmessage,
-						error : row.error,
-						errorlog : row.errorlog,
-						cpu : row.cpu_cpuid
-					};
-					out.push(obj);					
-				}
-			}, function(err, rowNum) {
-				res.json(out);
-			});
-		});
-	});
+    .get(function(req, res) {
+        db.serialize(function() {
+            var out = [];
+            db.each("SELECT * from jobs WHERE error = " + req.query.error, function(err, row) {
+                if (row.error == true) {
+                    db.run("UPDATE jobs SET " +
+                        "status = '3'," +
+                        "statusmessage = 'Failed'" +
+                        " WHERE jobid = " + row.jobid);
+                    var obj = {
+                        jobId: row.jobid,
+                        input: row.input_filepath,
+                        starttime: row.starttime,
+                        status: '3',
+                        statusmessage: "Failed",
+                        error: row.error,
+                        errorlog: row.errorlog,
+                        cpu: row.cpu_cpuid
+                    };
+                    out.push(obj);
+                } else {
+                    var obj = {
+                        jobId: row.jobid,
+                        input: row.input_filepath,
+                        starttime: row.starttime,
+                        status: row.status,
+                        statusmessage: row.statusmessage,
+                        error: row.error,
+                        errorlog: row.errorlog,
+                        cpu: row.cpu_cpuid
+                    };
+                    out.push(obj);
+                }
+            }, function(err, rowNum) {
+                res.json(out);
+            });
+        });
+    });
 
 module.exports = errorAPI;

@@ -19,30 +19,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var getMediainfo = require('./getMediainfo');
 var db = require('../../db/dbSqlite').sqliteDB;
 
 function updateInputMediainfo(jobid, inputPath) {
-	Promise.resolve(getMediainfo(inputPath))
-		.then(function(data) {
-			db.serialize(function() {
-				db.run("UPDATE jobs SET " + 
-									"input_vresolution = " + "'" + data.vresolution + "', " +
-									"input_vbitrate = " + "'" + data.vbitrate + "', " +
-									"input_vframerate = " + "'" + data.vframerate + "', " +
-									"input_vaspectratio = " + "'" + data.vaspectratio + "', " +
-									"input_duration = " + "'" + data.duration + "', " +
-									"input_abitrate = " + "'" + data.abitrate + "', " +
-									"input_vcodec = " + "'" + data.vcodec + "', " +
-									"input_acodec = " + "'" + data.acodec + "', " +
-									"input_vprofile = " + "'" + data.vprofile + "'" +
-									" WHERE jobid = " + jobid);
-			});
-		})
-		.catch(function(err) {
-			console.log(err);
-		});
+    Promise.resolve(getMediainfo(inputPath))
+        .then(function(data) {
+            db.serialize(function() {
+                db.run("UPDATE jobs SET " +
+                    "input_vresolution = " + "'" + data.vresolution + "', " +
+                    "input_vbitrate = " + "'" + data.vbitrate + "', " +
+                    "input_vframerate = " + "'" + data.vframerate + "', " +
+                    "input_vaspectratio = " + "'" + data.vaspectratio + "', " +
+                    "input_duration = " + "'" + data.duration + "', " +
+                    "input_abitrate = " + "'" + data.abitrate + "', " +
+                    "input_vcodec = " + "'" + data.vcodec + "', " +
+                    "input_acodec = " + "'" + data.acodec + "', " +
+                    "input_vprofile = " + "'" + data.vprofile + "'" +
+                    " WHERE jobid = " + jobid);
+            });
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
 }
 
 module.exports = updateInputMediainfo;

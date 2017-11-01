@@ -19,16 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var getIPAPI = express.Router();
 var network = require('network');
 
 getIPAPI.route('/')
-	.get(function(req, res) {
-		network.get_private_ip(function(err, ip) {
-			res.json(ip);
-		});
-	});
+    .get(function(req, res) {
+        network.get_private_ip(function(err, ip) {
+            res.json(ip);
+        });
+    });
 
 module.exports = getIPAPI;

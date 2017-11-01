@@ -19,108 +19,107 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var CPU = require('./cpu');
 
 class MVT {
-	constructor(cardid, cpu1id, cpu2id) {
-		this.cardid = cardid;
-		this.CPU1 = new CPU(cpu1id);
-		this.CPU2 = new CPU(cpu2id);
+    constructor(cardid, cpu1id, cpu2id) {
+        this.cardid = cardid;
+        this.CPU1 = new CPU(cpu1id);
+        this.CPU2 = new CPU(cpu2id);
 
-		this.info = {
-			serialno : "",
-			cardname : "Your Own Cardname",
-			model: "Mustang-200",
-			firmware: "",
-			manufacturer: "IEI"
-		}
-	}
+        this.info = {
+            serialno: "",
+            cardname: "Your Own Cardname",
+            model: "Mustang-200",
+            firmware: "",
+            manufacturer: "IEI"
+        }
+    }
 
-	cardID() {
-		return this.cardid;
-	}
+    cardID() {
+        return this.cardid;
+    }
 
-	cpu(id) {
-		if (id == this.CPU1.cpuID()) {
-			return this.CPU1;
-		} else if (id == this.CPU2.cpuID()) {
-			return this.CPU2;
-		}
-		return undefined;
-	}
+    cpu(id) {
+        if (id == this.CPU1.cpuID()) {
+            return this.CPU1;
+        } else if (id == this.CPU2.cpuID()) {
+            return this.CPU2;
+        }
+        return undefined;
+    }
 
-	cpuIdx(idx) {
-		if (idx == 1) {
-			return this.CPU1;
-		} else if (idx == 2) {
-			return this.CPU2;
-		}
-		return undefined;
-	}
+    cpuIdx(idx) {
+        if (idx == 1) {
+            return this.CPU1;
+        } else if (idx == 2) {
+            return this.CPU2;
+        }
+        return undefined;
+    }
 
-	cpu1() {
-		return this.CPU1;
-	}
+    cpu1() {
+        return this.CPU1;
+    }
 
-	cpu2() {
-		return this.CPU2;
-	}
+    cpu2() {
+        return this.CPU2;
+    }
 
-	setInfo(data) {
-		if (data == undefined) {
-			return;
-		}
-		this.info.serialno = data.serialno === undefined ? this.info.serialno : data.serialno,
-		this.info.cardname = data.cardname === undefined ? this.info.cardname : data.cardname,
-		this.info.model = data.model === undefined ? this.info.model : data.model,
-		this.info.firmware = data.firmware === undefined ? this.info.firmware : data.firmware,
-		this.info.manufacturer = data.manufacturer === undefined ? this.info.manufacturer : data.manufacturer
-	}
+    setInfo(data) {
+        if (data == undefined) {
+            return;
+        }
+        this.info.serialno = data.serialno === undefined ? this.info.serialno : data.serialno,
+            this.info.cardname = data.cardname === undefined ? this.info.cardname : data.cardname,
+            this.info.model = data.model === undefined ? this.info.model : data.model,
+            this.info.firmware = data.firmware === undefined ? this.info.firmware : data.firmware,
+            this.info.manufacturer = data.manufacturer === undefined ? this.info.manufacturer : data.manufacturer
+    }
 
-	getinfo() {
-		return this.info;
-	}
+    getinfo() {
+        return this.info;
+    }
 
-	getAllIPAddr() {
-		var array = [
-			this.CPU1.getIPAddr(),
-			this.CPU2.getIPAddr()
-		];
-		return array;
-	}
+    getAllIPAddr() {
+        var array = [
+            this.CPU1.getIPAddr(),
+            this.CPU2.getIPAddr()
+        ];
+        return array;
+    }
 
-	getAllIPAndPort() {
-		var array = [
-			this.CPU1.getIPAddr() + ":" + this.CPU1.getPort(),
-			this.CPU2.getIPAddr() + ":" + this.CPU2.getPort()
-		];
-		return array;
-	}
+    getAllIPAndPort() {
+        var array = [
+            this.CPU1.getIPAddr() + ":" + this.CPU1.getPort(),
+            this.CPU2.getIPAddr() + ":" + this.CPU2.getPort()
+        ];
+        return array;
+    }
 
-	getAllPort() {
-		var array = [
-			this.CPU1.getPort(),
-			this.CPU2.getPort()
-		];
-		return array;
-	}
+    getAllPort() {
+        var array = [
+            this.CPU1.getPort(),
+            this.CPU2.getPort()
+        ];
+        return array;
+    }
 
-	getAllGstreamerPort() {
-		var array = [
-			this.CPU1.getGstreamerPort(),
-			this.CPU2.getGstreamerPort()
-		];
-		return array;
-	}
+    getAllGstreamerPort() {
+        var array = [
+            this.CPU1.getGstreamerPort(),
+            this.CPU2.getGstreamerPort()
+        ];
+        return array;
+    }
 
-	getAllCPUID() {
-		var array = [
-			this.CPU1.cpuID(),
-			this.CPU2.cpuID()
-		];
-		return array;
-	}
+    getAllCPUID() {
+        var array = [
+            this.CPU1.cpuID(),
+            this.CPU2.cpuID()
+        ];
+        return array;
+    }
 }
 
 module.exports = MVT;

@@ -19,17 +19,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var errorlogAPI = express.Router();
 var sqlite3 = require('sqlite3').verbose();
 var db = require('../db/dbSqlite').sqliteDB;
 
 errorlogAPI.route('/:inputID')
-	.get(function(req, res) {
-		db.get("SELECT errorlog from jobs WHERE jobid = " + req.params.inputID, function(err, jobRow) {
-			res.json(jobRow);
-		});
-	});
+    .get(function(req, res) {
+        db.get("SELECT errorlog from jobs WHERE jobid = " + req.params.inputID, function(err, jobRow) {
+            res.json(jobRow);
+        });
+    });
 
 module.exports = errorlogAPI;

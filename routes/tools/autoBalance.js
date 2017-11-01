@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var request = require('request');
 var config = require('../../config/config');
 var config = require('../../config/config');
@@ -27,65 +26,65 @@ var cardMap = require('../../config/cardMap');
 var getCGinfo = require('./getCGinfo');
 
 var autoBalance = function(dataObj) {
-	return new Promise(function(resolve, reject) {
-		var cards = Object.keys(cardMap);
-		var promiseArr = [];
+    return new Promise(function(resolve, reject) {
+        var cards = Object.keys(cardMap);
+        var promiseArr = [];
 
-		for (var i = 0; i < cards.length; i++) {
-			promiseArr.push(Promise.resolve(cginfoOneCard(cards[i])));
-		}
+        for (var i = 0; i < cards.length; i++) {
+            promiseArr.push(Promise.resolve(cginfoOneCard(cards[i])));
+        }
 
-		Promise.all(promiseArr)
-			.then(function(allData) {
-				var cardid = "";
-				var cpuid = "";
-				var min = 100;
-				for (var i = 0; i < allData.length; i++) {
-					var usage = allData[i].cginfo.usage;
-					for (var j = 0; j < usage.length; j++) {
-						// Select method when gpu usage under 50%
-						if (usage[j].gpu <= 50 && usage[j].gpu < min) {
-							min = usage[j].gpu;
-							cardid = allData[i].cardid;
-							cpuid = usage[j].cpuid;
-						} else if (usage[j].gpu < min) {
-							// When all of the gpu is more than 50%
-							// There may have other algorithm to choose the card,
-							// Will implement later
-							min = usage[j].gpu;
-							cardid = allData[i].cardid;
-							cpuid = usage[j].cpuid;
-						}
-					}
-				}
-				dataObj.job.cardid = cardid;
-				dataObj.job.cpu_cpuid = cpuid;
-				resolve(dataObj);
-			});
-	});
+        Promise.all(promiseArr)
+            .then(function(allData) {
+                var cardid = "";
+                var cpuid = "";
+                var min = 100;
+                for (var i = 0; i < allData.length; i++) {
+                    var usage = allData[i].cginfo.usage;
+                    for (var j = 0; j < usage.length; j++) {
+                        // Select method when gpu usage under 50%
+                        if (usage[j].gpu <= 50 && usage[j].gpu < min) {
+                            min = usage[j].gpu;
+                            cardid = allData[i].cardid;
+                            cpuid = usage[j].cpuid;
+                        } else if (usage[j].gpu < min) {
+                            // When all of the gpu is more than 50%
+                            // There may have other algorithm to choose the card,
+                            // Will implement later
+                            min = usage[j].gpu;
+                            cardid = allData[i].cardid;
+                            cpuid = usage[j].cpuid;
+                        }
+                    }
+                }
+                dataObj.job.cardid = cardid;
+                dataObj.job.cpu_cpuid = cpuid;
+                resolve(dataObj);
+            });
+    });
 }
 
 function cginfoOneCard(cardid) {
-	var array = cardMap[cardid].getAllIPAndPort();
-	for (var i = 0; i < array.length; i++) {
-		array[i] = "http://" + array[i];
-	}
+    var array = cardMap[cardid].getAllIPAndPort();
+    for (var i = 0; i < array.length; i++) {
+        array[i] = "http://" + array[i];
+    }
 
-	return Promise.resolve(getCGinfo(array))
-		.then(function(result) {
-			return new Promise(function(resolve, reject) {
-				var idArr = cardMap[cardid].getAllCPUID();
-				for (var i = 0; i < result.usage.length; i++) {
-					result.usage[i].cpuid = idArr[i];
-				}
+    return Promise.resolve(getCGinfo(array))
+        .then(function(result) {
+            return new Promise(function(resolve, reject) {
+                var idArr = cardMap[cardid].getAllCPUID();
+                for (var i = 0; i < result.usage.length; i++) {
+                    result.usage[i].cpuid = idArr[i];
+                }
 
-				var obj = {
-					cardid : cardid,
-					cginfo : result
-				}
-				resolve(obj);
-			});
-		});
+                var obj = {
+                    cardid: cardid,
+                    cginfo: result
+                }
+                resolve(obj);
+            });
+        });
 }
 
 module.exports = autoBalance;

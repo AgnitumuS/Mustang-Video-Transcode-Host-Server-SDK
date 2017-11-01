@@ -19,91 +19,92 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 const exec = require('child_process').exec;
 
 function getAudioCodec(filePath) {
-	return new Promise(function(resolve, reject) {
-		var cmd = 'mediainfo --Inform="Audio;%Format%" ' + filePath;
-		exec(cmd, (err, stdout, stderr) => {
-			if (err) {
-				console.log(err);
-			}
-			var audioCodec = stdout.trim().toLowerCase();
-			switch(audioCodec) {
-				case "aac":
-					audioCodec = "aac";
-					break;
-				case "mpeg-audio":
-					audioCodec = "mp3";
-					break;
-				case "ac-3":
-					audioCodec = "mp3";
-					break;
-				case "vorbis":
-					audioCodec = "vorbis";
-					break;
-				default:
-					break;
-			}
-			resolve(audioCodec);
-		});		
-	});
+    return new Promise(function(resolve, reject) {
+        var cmd = 'mediainfo --Inform="Audio;%Format%," ' + '"' + filePath + '"';
+        exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+                console.log(err);
+            }
+            stdout = stdout.split(',')[0];
+
+            var audioCodec = stdout.trim().toLowerCase();
+            switch (audioCodec) {
+                case "aac":
+                    audioCodec = "aac";
+                    break;
+                case "mpeg audio":
+                    audioCodec = "mp3";
+                    break;
+                case "ac-3":
+                    audioCodec = "mp3";
+                    break;
+                case "vorbis":
+                    audioCodec = "vorbis";
+                    break;
+                default:
+                    break;
+            }
+            resolve(audioCodec);
+        });
+    });
 }
 
 function getVideoCodec(filePath) {
-	return new Promise(function(resolve, reject) {
-		var cmd = 'mediainfo --Inform="Video;%Format%" ' + filePath;
-		exec(cmd, (err, stdout, stderr) => {
-			if (err) {
-				console.log(err);
-			}
-			var videoCodec = stdout.trim().toLowerCase();
-			switch(videoCodec) {
-				case "avc":
-					videoCodec = "h264";
-					break;
-				case "hevc":
-					videoCodec = "h265";
-					break;
-				case "mpeg video":
-					videoCodec = "mpeg2";
-					break;
-				default:
-					break;
-			}
-			resolve(videoCodec);
-		});
-	});
+    return new Promise(function(resolve, reject) {
+        var cmd = 'mediainfo --Inform="Video;%Format%" ' + '"' + filePath + '"';
+        exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+                console.log(err);
+            }
+            var videoCodec = stdout.trim().toLowerCase();
+            switch (videoCodec) {
+                case "avc":
+                    videoCodec = "h264";
+                    break;
+                case "hevc":
+                    videoCodec = "h265";
+                    break;
+                case "mpeg video":
+                    videoCodec = "mpeg2";
+                    break;
+                default:
+                    break;
+            }
+            resolve(videoCodec);
+        });
+    });
 }
 
 function getFiletype(filePath) {
-	var filename = filePath.split('/');
-	filename = filename[filename.length - 1];
-	var filetype = filename.split('.');
-	filetype = filetype[filetype.length - 1];
-	return filetype;
+    var filename = filePath.split('/');
+    filename = filename[filename.length - 1];
+    var filetype = filename.split('.');
+    filetype = filetype[filetype.length - 1];
+    return filetype;
 }
 
 function getCodecInfo(filePath) {
-	return Promise.all([getAudioCodec(filePath), getVideoCodec(filePath)])
-		.then(function(allData) {
-			var filetype = getFiletype(filePath);
-			var obj = {
-				filetype : filetype,
-				audio : allData[0],
-				video : allData[1]
-			}
-			return obj;
-		})
-		.catch(function(err) {
-			console.log(err);
-		});
+    return Promise.all([getAudioCodec(filePath), getVideoCodec(filePath)])
+        .then(function(allData) {
+            var filetype = getFiletype(filePath);
+            var obj = {
+                filetype: filetype,
+                audio: allData[0],
+                video: allData[1]
+            }
+            return obj;
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
 }
 
 module.exports = {
-	getAudioCodec : getAudioCodec,
-	getVideoCodec : getVideoCodec,
-	getFiletype : getFiletype,
-	getCodecInfo : getCodecInfo
+    getAudioCodec: getAudioCodec,
+    getVideoCodec: getVideoCodec,
+    getFiletype: getFiletype,
+    getCodecInfo: getCodecInfo
 }

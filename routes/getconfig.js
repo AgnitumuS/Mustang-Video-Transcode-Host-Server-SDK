@@ -19,14 +19,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var getconfigAPI = express.Router();
 var config = require('../config/config');
 
 getconfigAPI.route('/')
-	.get(function(req, res) {
-		res.json(config);
-	});
+    .get(function(req, res) {
+        res.json(config);
+    });
 
 module.exports = getconfigAPI;

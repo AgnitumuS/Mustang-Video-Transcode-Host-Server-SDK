@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var cginfoAPI = express.Router();
 var request = require('request');
@@ -28,68 +27,74 @@ var config = require('../config/config');
 var cardMap = require('../config/cardMap');
 
 cginfoAPI.route('/')
-	.get(function(req, res) {
-		var cards = Object.keys(cardMap);
-		var promiseArr = [];
+    .get(function(req, res) {
+        var cards = Object.keys(cardMap);
+        var promiseArr = [];
 
-		for (var i = 0; i < cards.length; i++) {
-			promiseArr.push(Promise.resolve(cginfoOneCard(cards[i])));
-		}
+        for (var i = 0; i < cards.length; i++) {
+            promiseArr.push(Promise.resolve(cginfoOneCard(cards[i])));
+        }
 
-		Promise.all(promiseArr)
-			.then(function(allData) {
-				res.json(allData);
-			})
-			.catch(function(err) {
-				console.log(err);
-				res.statusCode = 500;
-				res.json({Message : "Internal Server Error"});
-			});
-	});
+        Promise.all(promiseArr)
+            .then(function(allData) {
+                res.json(allData);
+            })
+            .catch(function(err) {
+                console.log(err);
+                res.statusCode = 500;
+                res.json({
+                    Message: "Internal Server Error"
+                });
+            });
+    });
 
 cginfoAPI.route('/:cardid')
-	.get(function(req, res) {
-		if (cardMap[req.params.cardid] == undefined) {
-			res.json({Message : "Card not found! Please check cardid"});
-		} else {
-			var array = cardMap[req.params.cardid].getAllIPAndPort();
-			for (var i = 0; i < array.length; i++) {
-				array[i] = "http://" +array[i];
-			}
+    .get(function(req, res) {
+        if (cardMap[req.params.cardid] == undefined) {
+            res.json({
+                Message: "Card not found! Please check cardid"
+            });
+        } else {
+            var array = cardMap[req.params.cardid].getAllIPAndPort();
+            for (var i = 0; i < array.length; i++) {
+                array[i] = "http://" + array[i];
+            }
 
-			Promise.resolve(cginfoOneCard(req.params.cardid))
-				.then(function(result) {
-					res.json(result);
-				})
-				.catch(function(err) {
-					console.log(err);
-					res.statusCode = 500;
-					res.json({Message : "Internal Server Error"});
-				});		
-		}
-	});
+            Promise.resolve(cginfoOneCard(req.params.cardid))
+                .then(function(result) {
+                    res.json(result);
+                })
+                .catch(function(err) {
+                    console.log(err);
+                    res.statusCode = 500;
+                    res.json({
+                        Message: "Internal Server Error"
+                    });
+                });
+        }
+    });
 
 function cginfoOneCard(cardid) {
-	var array = cardMap[cardid].getAllIPAndPort();
-	for (var i = 0; i < array.length; i++) {
-		array[i] = "http://" + array[i];
-	}
+    var array = cardMap[cardid].getAllIPAndPort();
+    for (var i = 0; i < array.length; i++) {
+        array[i] = "http://" + array[i];
+    }
 
-	return Promise.resolve(tools.getCGinfo(array))
-		.then(function(result) {
-			return new Promise(function(resolve, reject) {
-				var idArr = cardMap[cardid].getAllCPUID();
-				for (var i = 0; i < result.usage.length; i++) {
-					result.usage[i].cpuId = idArr[i];
-				}
+    return Promise.resolve(tools.getCGinfo(array))
+        .then(function(result) {
+            return new Promise(function(resolve, reject) {
+                var idArr = cardMap[cardid].getAllCPUID();
+                for (var i = 0; i < result.usage.length; i++) {
+                    result.usage[i].cpuId = idArr[i];
+                }
 
-				var obj = {
-					cardid : cardid,
-					cginfo : result
-				}
-				resolve(obj);
-			});
-		});
+                var obj = {
+                    cardid: cardid,
+                    cginfo: result
+                }
+                resolve(obj);
+            });
+        });
 }
 
 module.exports = cginfoAPI;

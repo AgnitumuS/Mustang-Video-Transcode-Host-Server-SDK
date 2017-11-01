@@ -52,13 +52,14 @@
 #define __initdata
 #endif
 
-#define BDX_DRV_VERSION   	"0.3.6.14.1.A0"
+#define BDX_DRV_VERSION   	"0.3.6.14.3.IEI"
 #define DRIVER_AUTHOR     	"Tehuti networks"
 #define BDX_DRV_DESC      	"Tehuti Network Driver"
 #define BDX_NIC_NAME      	"tn40xx"
 #define BDX_DRV_NAME      	"tn40xx"
 
 //#define _EEE_
+#define TN40_THUNDERBOLT
 /*
  * Trace log
  */
@@ -156,7 +157,7 @@ extern int g_ftrace;
 extern int g_regLog;
 #define REGLOG_ON							g_regLog = 1
 #define REGLOG_OFF							g_regLog = 0
-u32  bdx_readl(void *base, u32 reg);error
+u32  bdx_readl(void *base, u32 reg);
 #define READ_REG(pp, reg)     bdx_readl(pp->pBdxRegs, reg)
 #define WRITE_REG(pp, reg, val) { \
   if (g_regLog) MSG("regW 0x%x 0x%x\n", reg, val );\
@@ -165,7 +166,13 @@ u32  bdx_readl(void *base, u32 reg);error
 #else
 #define REGLOG_ON
 #define REGLOG_OFF
+#ifdef TN40_THUNDERBOLT
+struct bdx_priv;
+u32 tbReadReg(struct bdx_priv *priv, u32 reg);
+#define READ_REG(pp, reg)     tbReadReg(pp, reg)
+#else
 #define READ_REG(pp, reg)     readl(pp->pBdxRegs + reg)
+#endif
 #define WRITE_REG(pp, reg, val)   writel(val, pp->pBdxRegs + reg)
 
 #endif
@@ -175,6 +182,7 @@ u32  bdx_readl(void *base, u32 reg);error
 #define ASUS_VID				0x1043
 #define EDIMAX_VID				0x1432
 #define PROMISE_VID				0x105a
+#define BUFFALO_VID				0x1154
 
 #define MDIO_SPEED_1MHZ 		(1)
 #define MDIO_SPEED_6MHZ			(6)
@@ -527,6 +535,9 @@ struct bdx_priv
 #endif
 	u32							eee_enabled;
     struct bdx_cMem				*cMem;
+#ifdef TN40_THUNDERBOLT
+    int							bDeviceRemoved;
+#endif
 };
 #if !defined(SPEED_5000)
 #define SPEED_5000 				(5000)
@@ -592,7 +603,7 @@ struct pbl
  */
 #define TXD_W1_VAL(bc, checksum, vtag, lgsnd, vlan_id)  \
     ((bc) | ((checksum) << 5)  | ((vtag) << 8) |    \
-    ((lgsnd) << 9) | (0x30000) | ((vlan_id) << 20))
+    ((lgsnd) << 9) | (0x30000) | ((vlan_id & 0x0fff) << 20) | (((vlan_id >> 13) & 7) << 13))
 
 struct txd_desc
 {
@@ -782,7 +793,7 @@ struct txf_desc
 #define regMAC_ADDR_0           0x600C
 #define regMAC_ADDR_1           0x6010
 #define regFRM_LENGTH           0x6014
-#define regPAUSE_QUANT          0x6018
+#define regPAUSE_QUANT          0x6054
 #define regRX_FIFO_SECTION      0x601C
 #define regTX_FIFO_SECTION      0x6020
 #define regRX_FULLNESS          0x6024

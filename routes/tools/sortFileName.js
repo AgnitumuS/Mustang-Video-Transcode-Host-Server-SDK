@@ -19,45 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 function sortFileName(array) {
-	if (array == undefined) {
-		return undefined;
-	}
-	for (var i = 0; i < array.length; i++) {
-		var min = i;
-		for (var j = i + 1; j < array.length; j++) {
-			if (compareTwoString(array[j], array[min])) {
-				min = j;
-			}
-		}
-		swap(array, i, min);
-	}
-	return array;
+    if (array == undefined) {
+        return undefined;
+    }
+    for (var i = 0; i < array.length; i++) {
+        var min = i;
+        for (var j = i + 1; j < array.length; j++) {
+            if (compareTwoString(array[j], array[min])) {
+                min = j;
+            }
+        }
+        swap(array, i, min);
+    }
+    return array;
 }
 
 function swap(array, left, right) {
-	var temp = array[left];
-	array[left] = array[right];
-	array[right] = temp;
+    var temp = array[left];
+    array[left] = array[right];
+    array[right] = temp;
 }
 
 function compareTwoString(str1, str2) {
-	// return true if str1 < str2
-	var i = 0;
-	while (i < str1.length && i < str2.length) {
-		if (str1[i].name.toLowerCase() < str2[i].name.toLowerCase()) {
-			return true;
-		} else if (str1[i].name.toLowerCase() == str2[i].name.toLowerCase()) {
-			i++;
-		} else {
-			return false;
-		}
-	}
-	if (str1.length < str2.length) {
-		return true;
-	}
-	return false;
+    // return true if str1 < str2
+    var i = 0;
+    while (i < str1.length && i < str2.length) {
+        if (str1[i].name.toLowerCase() < str2[i].name.toLowerCase()) {
+            return true;
+        } else if (str1[i].name.toLowerCase() == str2[i].name.toLowerCase()) {
+            i++;
+        } else {
+            return false;
+        }
+    }
+    if (str1.length < str2.length) {
+        return true;
+    }
+    return false;
 }
 
 module.exports = sortFileName;

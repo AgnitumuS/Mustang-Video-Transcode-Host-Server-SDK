@@ -19,40 +19,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var generateTimeStamp = function() {
-	var time = new Date();
-	var year = time.getFullYear().toString();
-	var mounth = (time.getMonth() + 1).toString();
-	var day = time.getDate().toString();
-	var hour = time.getHours().toString();
-	var min = time.getMinutes().toString();
-	var sec = time.getSeconds().toString();
-	var millisec = time.getMilliseconds().toString();
+    var time = new Date();
+    var year = time.getFullYear().toString();
+    var mounth = (time.getMonth() + 1).toString();
+    var day = time.getDate().toString();
+    var hour = time.getHours().toString();
+    var min = time.getMinutes().toString();
+    var sec = time.getSeconds().toString();
+    var millisec = time.getMilliseconds().toString();
 
-	if (mounth.length != 2) {
-		mounth = "0" + mounth;
-	}
-	if (day.length != 2) {
-		day = "0" + day;
-	}
-	if (hour.length != 2) {
-		hour = "0" + hour;
-	}
-	if (min.length != 2) {
-		min = "0" + min;
-	}
-	if (sec.length != 2) {
-		sec = "0" + sec;
-	}
-	if (millisec.length == 1) {
-		millisec = "00" + millisec;
-	} else if (millisec.length == 2) {
-		millisec = "0" + millisec;
-	}
+    if (mounth.length != 2) {
+        mounth = "0" + mounth;
+    }
+    if (day.length != 2) {
+        day = "0" + day;
+    }
+    if (hour.length != 2) {
+        hour = "0" + hour;
+    }
+    if (min.length != 2) {
+        min = "0" + min;
+    }
+    if (sec.length != 2) {
+        sec = "0" + sec;
+    }
+    if (millisec.length == 1) {
+        millisec = "00" + millisec;
+    } else if (millisec.length == 2) {
+        millisec = "0" + millisec;
+    }
 
-	var curTime = year + "-" + mounth + "-" + day + " " + hour + ":" + min + ":" + sec + "." + millisec;
-	return curTime;
+    var curTime = year + "-" + mounth + "-" + day + " " + hour + ":" + min + ":" + sec + "." + millisec;
+    return curTime;
 }
 
 module.exports = generateTimeStamp;

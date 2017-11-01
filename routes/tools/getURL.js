@@ -19,50 +19,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var config = require('../../config/config');
 var cardMap = require('../../config/cardMap');
 var path = require('path');
 
 var getURL = function(outputsID, data, origianlInputPath, outputFilename, fileextension) {
-	var protocol = data.protocol;
-	var apiMethod = data.apiMethod;
-	var cardid = data.cardid;
-	var cpuid = data.cpu_cpuid;
-	var inputDir = path.dirname(origianlInputPath);
-	var vcodec = data.vcodec;
+    var protocol = data.protocol;
+    var apiMethod = data.apiMethod;
+    var cardid = data.cardid;
+    var cpuid = data.cpu_cpuid;
+    var inputDir = path.dirname(origianlInputPath);
+    var vcodec = data.vcodec;
 
-	var result = "";
-	if (vcodec == "vp9") {
-		if (apiMethod == "file2file") {
-			return inputDir + "/output/" + outputFilename + "." + fileextension;
-		} else {
-			result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getIcecastPort() + "/" + outputsID;
-			return result;
-		}
-	} else {
-		if (apiMethod == "file2file") {
-			return inputDir + "/output/" + outputFilename + "." + fileextension;
-		} else {
-			switch(protocol) {
-				case 0:
-					result = "rtmp://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getRtmpPort() + "/live/" + outputsID;
-					break;
-				case 1:
-					result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getHttpPort() +"/hls/" + outputsID + ".m3u8";
-					break;
-				case 2:
-					result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getHttpPort() + "/dash/" + outputsID + ".mpd";
-					break;
-				case 3:
-					result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getIcecastPort() + "/" + outputsID;
-					break;
-				defaulf:
-					result = "";
-			}
-			return result;
-		}
-	}
+    var result = "";
+    if (vcodec == "vp9") {
+        if (apiMethod == "file2file") {
+            return inputDir + "/output/" + outputFilename + "." + fileextension;
+        } else {
+            result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getIcecastPort() + "/" + outputsID;
+            return result;
+        }
+    } else {
+        if (apiMethod == "file2file") {
+            return inputDir + "/output/" + outputFilename + "." + fileextension;
+        } else {
+            switch (protocol) {
+                case 0:
+                    result = "rtmp://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getRtmpPort() + "/live/" + outputsID;
+                    break;
+                case 1:
+                    result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getHttpPort() + "/hls/" + outputsID + ".m3u8";
+                    break;
+                case 2:
+                    result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getHttpPort() + "/dash/" + outputsID + ".mpd";
+                    break;
+                case 3:
+                    result = "http://" + config.externalIP + ":" + cardMap[cardid].cpu(cpuid).getIcecastPort() + "/" + outputsID;
+                    break;
+                    defaulf:
+                        result = "";
+            }
+            return result;
+        }
+    }
 }
 
 module.exports = getURL;

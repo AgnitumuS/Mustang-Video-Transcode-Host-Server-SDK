@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var generateFilename = require('./generateFilename');
 var config = require('../../config/config');
 var path = require('path');
@@ -27,10 +26,10 @@ var path = require('path');
 var buildRequestData = function(body, apiMethod, fileextension) {
     var outputArr = [];
     var protocolMap = {
-        0 : "live",
-        1 : "hls",
-        2 : "dash",
-        3 : "none"
+        0: "live",
+        1: "hls",
+        2: "dash",
+        3: "none"
     }
     switch (apiMethod) {
         case "file2file":
@@ -50,7 +49,7 @@ var buildRequestData = function(body, apiMethod, fileextension) {
             data = {
                 "jobId": body.jobid,
                 "transcode": "file2file",
-                "quickTranscodeEnable" : body.quickTranscodeEnable == 1 ? true : false,
+                "quickTranscodeEnable": body.quickTranscodeEnable == 1 ? true : false,
                 "data": {
                     "path": body.input_filepath.replace(config.hostMountedDir, config.cardMountedDir)
                 },
@@ -67,7 +66,7 @@ var buildRequestData = function(body, apiMethod, fileextension) {
             break;
         case "file2stream":
             var format = "";
-            switch(body.output_vcodec) {
+            switch (body.output_vcodec) {
                 case "h264":
                     format = "flv";
                     break;

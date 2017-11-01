@@ -19,28 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var fs = require('fs');
 
 var checkFileExist = function(filePath, filename, callback) {
-	fs.readdir(filePath, function(err, filenames) {
-		if (err) {
-		  console.log(err);
-		  callback({success : false});
-		}
-		if (filenames == undefined) {
-			console.log("Please check the filepath");
-			callback({success : false});
-		} else {
-			var exist = false;
-			for (var i = 0; i < filenames.length; i++) {
-				if (filenames[i] == filename) {
-					exist = true;
-				}
-			}
-			callback({success : exist});
-		}
-	});	
+    fs.readdir(filePath, function(err, filenames) {
+        if (err) {
+            console.log(err);
+            callback({
+                success: false
+            });
+        }
+        if (filenames == undefined) {
+            console.log("Please check the filepath");
+            callback({
+                success: false
+            });
+        } else {
+            var exist = false;
+            for (var i = 0; i < filenames.length; i++) {
+                if (filenames[i] == filename) {
+                    exist = true;
+                }
+            }
+            callback({
+                success: exist
+            });
+        }
+    });
 }
 
 module.exports = checkFileExist;

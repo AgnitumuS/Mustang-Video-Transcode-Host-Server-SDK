@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var fs = require('fs');
 var path = require('path');
 var config = require('../../config/config');
@@ -28,45 +27,45 @@ var db = require('../../db/dbSqlite').sqliteDB;
 
 function unmountPath(inputPath) {
     var sourceDirPath = path.dirname(inputPath);
-	db.serialize(function() {
-		db.get("SELECT * from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
-			if (data != undefined && sourceDirPath != config.hostMountedDir) {
-				try {
-			        var mountCandidate = data.mountedFolder;
-			        var targetPath = config.hostMountedDir + "/" + mountCandidate;
-			        if (fs.existsSync(targetPath)) {
-			            var cmd = "umount " + targetPath;
-			            exec(cmd, (err, stdout, stderr) => {
-			                if (err) {
-			                    // console.error(err);
-			                }
-			                removeDorectory(targetPath)
-			                if (!fs.existsSync(targetPath)) {
-								db.run("DELETE from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
-									if (err) {
-										// console.log(err);
-									}
-								});
-			                }
-			            });
-			        }
-				} catch(err) {
-					// console.log(err);
-				};
-			}
-		});
-	});
+    db.serialize(function() {
+        db.get("SELECT * from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
+            if (data != undefined && sourceDirPath != config.hostMountedDir) {
+                try {
+                    var mountCandidate = data.mountedFolder;
+                    var targetPath = config.hostMountedDir + "/" + mountCandidate;
+                    if (fs.existsSync(targetPath)) {
+                        var cmd = 'umount "' + targetPath + '"';
+                        exec(cmd, (err, stdout, stderr) => {
+                            if (err) {
+                                // console.error(err);
+                            }
+                            removeDorectory(targetPath)
+                            if (!fs.existsSync(targetPath)) {
+                                db.run("DELETE from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
+                                    if (err) {
+                                        // console.log(err);
+                                    }
+                                });
+                            }
+                        });
+                    }
+                } catch (err) {
+                    // console.log(err);
+                };
+            }
+        });
+    });
 }
 
 function removeDorectory(targetPath) {
     try {
-	    fs.rmdir(targetPath, function(err) {
-	    	if (err) {
-	    		// console.log(err);
-	    	}
-	    });
-    } catch(err) {
-    	// console.log(err);
+        fs.rmdir(targetPath, function(err) {
+            if (err) {
+                // console.log(err);
+            }
+        });
+    } catch (err) {
+        // console.log(err);
     }
 }
 

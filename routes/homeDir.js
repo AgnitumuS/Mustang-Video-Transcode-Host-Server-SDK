@@ -19,14 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var homeDirAPI = express.Router();
 var os = require('os');
 
 homeDirAPI.route('/')
-	.get(function(req, res) {
-		res.json({homedir : os.homedir()});
-	});
+    .get(function(req, res) {
+        res.json({
+            homedir: os.homedir()
+        });
+    });
 
 module.exports = homeDirAPI;

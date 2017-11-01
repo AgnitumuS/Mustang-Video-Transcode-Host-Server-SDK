@@ -19,7 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var listDirAPI = express.Router();
 var fs = require('fs');
@@ -28,61 +27,67 @@ var os = require('os');
 var sortFileName = require('./tools/toolsIdx').sortFileName;
 
 listDirAPI.route('/')
-	.get(function(req, res) {
-		var dirPath = req.query.path[req.query.path.length - 1] == "/" ? req.query.path : req.query.path + "/";
-		var videoExtension = [".mkv", ".mp4", ".flv", ".f4v", ".avi", ".webm", ".mpeg", ".mov", ".mpg", ".ms", ".mts"];
-		fs.readdir(dirPath, function(err, array) {
-			if (err) {
-			  console.log(err);
-			  res.json(err);
-			}
-			var promiseArr = [];
-			for (var i = 0; i < array.length; i++) {
-				if (array[i][0] != ".") {
-					promiseArr.push(Promise.resolve(checkPathType(dirPath + array[i], array[i])));
-				}
-			}
-			Promise.all(promiseArr)
-				.then(function(allData) {
-					var directoryArray = [];
-					var videoArray = [];
-					for (var i = 0; i < allData.length; i++) {
-						if (allData[i].type === "directory") {
-							directoryArray.push(allData[i]);
-						} else if (allData[i].type === "file") {
-							if (videoExtension.indexOf(path.extname(allData[i].name)) != -1) {
-								videoArray.push(allData[i]);
-							}
-						}
-					}
-					res.json(sortFileName(directoryArray).concat(sortFileName(videoArray)));
-				})
-				.catch(function(err) {
-					console.log(err);
-					res.json("ERROR: " + err);
-				});
-		});
-	});
+    .get(function(req, res) {
+        var dirPath = req.query.path[req.query.path.length - 1] == "/" ? req.query.path : req.query.path + "/";
+        var videoExtension = [".mkv", ".mp4", ".flv", ".f4v", ".avi", ".webm", ".mpeg", ".mov", ".mpg", ".ms", ".mts"];
+        fs.readdir(dirPath, function(err, array) {
+            if (err) {
+                console.log(err);
+                res.json(err);
+            }
+            if (array == undefined) {
+                res.json(undefined);
+            } else {
+                var promiseArr = [];
+                for (var i = 0; i < array.length; i++) {
+                    if (array[i][0] != ".") {
+                        promiseArr.push(Promise.resolve(checkPathType(dirPath + array[i], array[i])));
+                    }
+                }
+                Promise.all(promiseArr)
+                    .then(function(allData) {
+                        var directoryArray = [];
+                        var videoArray = [];
+                        for (var i = 0; i < allData.length; i++) {
+                            if (allData[i] == undefined) {
+                                continue;
+                            } else if (allData[i].type === "directory") {
+                                directoryArray.push(allData[i]);
+                            } else if (allData[i].type === "file") {
+                                if (videoExtension.indexOf(path.extname(allData[i].name).toLowerCase()) != -1) {
+                                    videoArray.push(allData[i]);
+                                }
+                            }
+                        }
+                        res.json(sortFileName(directoryArray).concat(sortFileName(videoArray)));
+                    })
+                    .catch(function(err) {
+                        console.log(err);
+                        res.json("ERROR: " + err);
+                    });
+            }
+        });
+    });
 
 function checkPathType(inputPath, name) {
-	return new Promise(function(resolve, reject) {
-		fs.stat(inputPath, function(err, stats) {
-			if (stats.isDirectory()) {
-				var obj = {
-					type : "directory",
-					name : name
-				}
-				resolve(obj);
-			} else if (stats.isFile()) {
-				var obj = {
-					type : "file",
-					name : name
-				}
-				resolve(obj);
-			}
-			resolve(undefined);
-		});
-	});
+    return new Promise(function(resolve, reject) {
+        fs.stat(inputPath, function(err, stats) {
+            if (stats.isDirectory()) {
+                var obj = {
+                    type: "directory",
+                    name: name
+                }
+                resolve(obj);
+            } else if (stats.isFile()) {
+                var obj = {
+                    type: "file",
+                    name: name
+                }
+                resolve(obj);
+            }
+            resolve(undefined);
+        });
+    });
 }
 
 module.exports = listDirAPI;

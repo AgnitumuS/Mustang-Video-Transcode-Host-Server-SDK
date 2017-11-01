@@ -19,16 +19,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var db = require('../../db/dbSqlite').sqliteDB;
 
 function tagJobError(jobid) {
-	db.run("UPDATE jobs SET " + 
-				"status = '3', " +
-				"statusmessage = " + "'Failed', " +
-				"error = 1, " +
-				"errorlog = 'Card Server Timeout!'" +
-				" WHERE jobid = " + jobid);
+    db.run("UPDATE jobs SET " +
+        "status = '3', " +
+        "statusmessage = " + "'Failed', " +
+        "error = 1, " +
+        "errorlog = 'Card Server Timeout!'" +
+        " WHERE jobid = " + jobid);
 }
 
 module.exports = tagJobError;

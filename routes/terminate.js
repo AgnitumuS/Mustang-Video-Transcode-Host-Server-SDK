@@ -19,20 +19,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var terminateAPI = express.Router();
 var terminateJob = require('./tools/terminateJob');
 
 terminateAPI.route('/')
-	.get(function(req, res) {
-		res.json({Message : "terminateAPI"});
-	})
-	.post(function(req, res) {
-		Promise.resolve(terminateJob(req.body.jobId))
-			.then(function(result) {
-				res.json(result);
-			});
-	});
+    .get(function(req, res) {
+        res.json({
+            Message: "terminateAPI"
+        });
+    })
+    .post(function(req, res) {
+        Promise.resolve(terminateJob(req.body.jobId))
+            .then(function(result) {
+                res.json(result);
+            });
+    });
 
 module.exports = terminateAPI;

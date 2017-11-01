@@ -19,26 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var getStatusMsg = function(code) {
-	var msg = "";
-	switch(code) {
-		case 0:
-			msg = "Save";
-			break;
-		case 1:
-			msg = "Running";
-			break;
-		case 2:
-			msg = "Completed";
-			break;
-		case 3:
-			msg = "Failed";
-			break;
-		defaulf:
-			msg = "Save"
-	}
-	return msg;
+    var msg = "";
+    switch (code) {
+        case 0:
+            msg = "Save";
+            break;
+        case 1:
+            msg = "Running";
+            break;
+        case 2:
+            msg = "Completed";
+            break;
+        case 3:
+            msg = "Failed";
+            break;
+            defaulf:
+                msg = "Save"
+    }
+    return msg;
 }
 
 module.exports = getStatusMsg;

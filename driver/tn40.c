@@ -12,7 +12,7 @@
 #endif
 #include "tn40_fw.h"
 
-static void bdx_no_hotplug(void);
+static void bdx_scan_pci(void);
 
 uint bdx_force_no_phy_mode = 0;
 module_param_named(no_phy, bdx_force_no_phy_mode, int, 0644);
@@ -49,6 +49,7 @@ static struct bdx_device_descr  bdx_dev_tbl[] =
 #ifdef PHY_MV88X3310
 	LDEV(TEHUTI_VID,0x4027,0x3015,1,1,MV88X3310,NA,	"TN9710P 10GBase-T/NBASE-T Ethernet Adapter"),
 	LDEV(TEHUTI_VID,0x4027,0x8104,1,1,MV88X3310,NA,	"Edimax 10 Gigabit Ethernet PCI Express Adapter"),
+	LDEV(TEHUTI_VID,0x4027,0x0368,1,1,MV88X3310,NA,	"Buffalo LGY-PCIE-MG Ethernet Adapter"),
 #endif
 #ifdef PHY_MV88E2010
 	LDEV(TEHUTI_VID,0x4527,0x3015,1,1,MV88E2010,NA,	"TN9710Q 5GBase-T/NBASE-T Ethernet Adapter"),
@@ -80,6 +81,7 @@ static struct pci_device_id bdx_pci_tbl[] =
 #ifdef PHY_MV88X3310
     {TEHUTI_VID, 0x4027, TEHUTI_VID, 0x3015, 0, 0, 0},
 	{TEHUTI_VID, 0x4027, EDIMAX_VID, 0x8104, 0, 0, 0},
+	{TEHUTI_VID, 0x4027, BUFFALO_VID, 0x0368, 0, 0, 0},
 #endif
 #ifdef PHY_MV88E2010
     {TEHUTI_VID, 0x4527, TEHUTI_VID, 0x3015, 0, 0, 0},
@@ -264,11 +266,46 @@ void dbg_printPBL(struct pbl *pbl)
 #if defined(FTRACE)
 int g_ftrace = 0;
 #endif
+
+//-------------------------------------------------------------------------------------------------
+
+#ifdef TN40_THUNDERBOLT
+
+u32 tbReadReg(struct bdx_priv *priv, u32 reg)
+{
+	u32 rVal;
+
+	if (!priv->bDeviceRemoved)
+	{
+		rVal = readl(priv->pBdxRegs + reg);
+		if ( rVal == 0xFFFFFFFF )
+		{
+			priv->bDeviceRemoved = 1;
+		}
+	}
+	else
+	{
+		rVal = 0xFFFFFFFF;
+	}
+
+	return rVal;
+
+} // tbReadReg()
+
+#endif
+
+//-------------------------------------------------------------------------------------------------
 #ifdef REGLOG
 int g_regLog = 0;
-u32  bdx_readl(void *base, u32 reg)
+u32  bdx_readl(struct bdx_priv *priv, u32 reg)
 {
-    u32 val=readl((char *)base + reg);
+
+    u32 val;
+#ifdef TN40_THUNDERBOLT
+    val = tbReadReg(priv, reg);
+#else
+    val=readl(priv->pBdxRegs + reg);
+#endif
     if (g_regLog)
     {
     	MSG("regR 0x%x = 0x%x\n",(u32)(((u64)reg)&0xFFFF) ,val);
@@ -741,6 +778,11 @@ int bdx_speed_set(struct bdx_priv *priv, u32 speed)
             }
 
             WRITE_REG(priv, 0x6350, 0x0); /*MAC.PCS_IF_MODE*/
+	WRITE_REG(priv, 0x12E0, 0x28);
+    	    WRITE_REG(priv, regPAUSE_QUANT, 0xFFFF);
+    	    WRITE_REG(priv, 0x6064, 0xF);
+            WRITE_REG(priv, regMAC_ADDR_0, 0x08561B00);
+            WRITE_REG(priv, regMAC_ADDR_1, 0x0D01);
             WRITE_REG(priv, regCTRLST, 0xC13);//0x93//0x13
             WRITE_REG(priv, 0x111c, 0x7ff); /*MAC.MAC_RST_CNT*/
             for(i=40; i--;)
@@ -1120,20 +1162,24 @@ static int bdx_poll(struct napi_struct *napi, int budget)
 {
     struct bdx_priv *priv = container_of(napi, struct bdx_priv, napi);
     int work_done;
-    DEF_TIMER(bdx_poll);
 
-    START_TIMER(bdx_poll);
     ENTER;
-
-    bdx_tx_cleanup(priv);
-
-    work_done = bdx_rx_receive(priv, &priv->rxd_fifo0, budget);
-    if (work_done < budget)
+    if (!priv->bDeviceRemoved)
     {
-        napi_complete(napi);
-        bdx_enable_interrupts(priv);
+		bdx_tx_cleanup(priv);
+
+		work_done = bdx_rx_receive(priv, &priv->rxd_fifo0, budget);
+		if (work_done < budget)
+		{
+			napi_complete(napi);
+			bdx_enable_interrupts(priv);
+		}
     }
-    END_TIMER(bdx_poll);
+    else
+    {
+    	work_done = budget;
+    }
+
     return work_done;
 }
 
@@ -1146,13 +1192,22 @@ static int bdx_poll(struct napi_struct *napi, int budget)
     int work_done;
 
     ENTER;
-    bdx_tx_cleanup(priv);
-    work_done = bdx_rx_receive(priv, &priv->rxd_fifo0, budget);
-    if (work_done < budget)
+    if (!priv->bDeviceRemoved)
     {
-        netif_rx_complete(priv->ndev, napi);
-        bdx_enable_interrupts(priv);
+
+		bdx_tx_cleanup(priv);
+		work_done = bdx_rx_receive(priv, &priv->rxd_fifo0, budget);
+		if (work_done < budget)
+		{
+			netif_rx_complete(priv->ndev, napi);
+			bdx_enable_interrupts(priv);
+		}
     }
+    else
+    {
+    	work_done = budget;
+    }
+
     return work_done;
 }
 
@@ -1161,23 +1216,27 @@ static int bdx_poll(struct napi_struct *napi, int budget)
 #else
 static int bdx_poll(struct net_device *ndev, int *budget_p)
 {
-    struct bdx_priv *priv = ndev->priv;
-    int work_done;
+    struct 	bdx_priv *priv = ndev->priv;
+    int 	work_done;
+    int		rVal = 0;
 
     ENTER;
-    bdx_tx_cleanup(priv);
-    work_done          = bdx_rx_receive(priv, &priv->rxd_fifo0,
-                                        min(*budget_p, priv->ndev->quota));
-    *budget_p         -= work_done;
-    priv->ndev->quota -= work_done;
-    if (work_done < *budget_p)
+    if (!priv->bDeviceRemoved)
     {
-        DBG("rx poll is done. backing to isr-driven\n");
-        netif_rx_complete(ndev);
-        bdx_enable_interrupts(priv);
-        return 0;
+    	bdx_tx_cleanup(priv);
+		work_done          = bdx_rx_receive(priv, &priv->rxd_fifo0,	min(*budget_p, priv->ndev->quota));
+		*budget_p         -= work_done;
+		priv->ndev->quota -= work_done;
+		if (work_done < *budget_p)
+		{
+			DBG("rx poll is done. backing to isr-driven\n");
+			netif_rx_complete(ndev);
+			bdx_enable_interrupts(priv);
+		}
+		rVal = 1;
     }
-    return 1;
+
+    return rVal;
 }
 #endif
 
@@ -1262,55 +1321,62 @@ static void bdx_CX4_hw_start(struct bdx_priv *priv)
 	int i;
 	u32 val;
 
-	/* 10G overall max length (vlan, eth&ip header, ip payload, crc) */
-	WRITE_REG(priv, 0x1010, 0x0217);
-	WRITE_REG(priv, 0x104c, 0x4c);
-	WRITE_REG(priv, 0x1050, 0x4c);
-	WRITE_REG(priv, 0x1054, 0x4c);
-	WRITE_REG(priv, 0x1058, 0x4c);
-	WRITE_REG(priv, 0x102c, 0x434);
-	WRITE_REG(priv, 0x1030, 0x434);
-	WRITE_REG(priv, 0x1034, 0x434);
-	WRITE_REG(priv, 0x1038, 0x434);
+            WRITE_REG(priv, 0x1010, 0x217); /*ETHSD.REFCLK_CONF  */
+            WRITE_REG(priv, 0x104c, 0x4c);  /*ETHSD.L0_RX_PCNT  */
+            WRITE_REG(priv, 0x1050, 0x4c);  /*ETHSD.L1_RX_PCNT  */
+            WRITE_REG(priv, 0x1054, 0x4c);  /*ETHSD.L2_RX_PCNT  */
+            WRITE_REG(priv, 0x1058, 0x4c);  /*ETHSD.L3_RX_PCNT  */
+            WRITE_REG(priv, 0x102c, 0x434); /*ETHSD.L0_TX_PCNT  */
+            WRITE_REG(priv, 0x1030, 0x434); /*ETHSD.L1_TX_PCNT  */
+            WRITE_REG(priv, 0x1034, 0x434); /*ETHSD.L2_TX_PCNT  */
+            WRITE_REG(priv, 0x1038, 0x434); /*ETHSD.L3_TX_PCNT  */
+            WRITE_REG(priv, 0x6300, 0x0400); /*MAC.PCS_CTRL*/
+            //  udelay(50); val = READ_REG(priv,0x6300);ERR("MAC init:0x6300= 0x%x \n",val);
+            WRITE_REG(priv, 0x1018, 0x00); /*Mike2*/
+            udelay(5);
+            WRITE_REG(priv, 0x1018, 0x04); /*Mike2*/
+            udelay(5);
+            WRITE_REG(priv, 0x1018, 0x06); /*Mike2*/
+            udelay(5);
+            //MikeFix1
+            //L0: 0x103c , L1: 0x1040 , L2: 0x1044 , L3: 0x1048 =0x81644
+            WRITE_REG(priv, 0x103c, 0x81644); /*ETHSD.L0_TX_DCNT  */
+            WRITE_REG(priv, 0x1040, 0x81644); /*ETHSD.L1_TX_DCNT  */
+            WRITE_REG(priv, 0x1044, 0x81644); /*ETHSD.L2_TX_DCNT  */
+            WRITE_REG(priv, 0x1048, 0x81644); /*ETHSD.L3_TX_DCNT  */
+            WRITE_REG(priv, 0x1014, 0x043); /*ETHSD.INIT_STAT*/
+            for(i=1000; i; i--)
+            {
+                udelay(50);
+                val = READ_REG(priv,0x1014); /*ETHSD.INIT_STAT*/
+                if(val & (1<<9))
+                {
+                    WRITE_REG(priv, 0x1014, 0x3); /*ETHSD.INIT_STAT*/
+                    val = READ_REG(priv,0x1014); /*ETHSD.INIT_STAT*/
+                    //                 ERR("MAC init:0x1014=0x%x i=%d\n",val,i);
+                    break;
+                }
+            }
+            if(0==i)
+            {
+                ERR("MAC init timeout!\n");
+            }
 
+            WRITE_REG(priv, 0x6350, 0x0); /*MAC.PCS_IF_MODE*/
+	WRITE_REG(priv, 0x12E0, 0x28);
+    	    WRITE_REG(priv, regPAUSE_QUANT, 0xFFFF);
+    	    WRITE_REG(priv, 0x6064, 0xF);
+            WRITE_REG(priv, regMAC_ADDR_0, 0x08561B00);
+            WRITE_REG(priv, regMAC_ADDR_1, 0x0D01);
+            WRITE_REG(priv, regCTRLST, 0xC13);//0x93//0x13
+            WRITE_REG(priv, 0x111c, 0x7ff); /*MAC.MAC_RST_CNT*/
+            for(i=40; i--;)
+            {
+                udelay(50);
+            }
+            WRITE_REG(priv, 0x111c, 0x0); /*MAC.MAC_RST_CNT*/
+            //WRITE_REG(priv, 0x1104,0x24);  // EEE_CTRL.EXT_PHY_LINK=1 (bit 2)
 
-	WRITE_REG(priv, 0x6300, 0x0400);
-	//  udelay(50); val = READ_REG(priv,0x6300);ERR("MAC init:0x6300= 0x%x \n",val);
-
-	WRITE_REG(priv, 0x1014, 0x043);
-	for(i=1000; i; i--)
-	{
-		udelay(50);
-		val = READ_REG(priv,0x1014);
-		if(val & (1<<9))
-		{
-			WRITE_REG(priv, 0x1014, 0x3);
-			val = READ_REG(priv,0x1014);
-			ERR("MAC init:0x1014= 0x%x i=%d\n",val,i);
-			break;
-		}
-	}
-	if(0==i)
-	{
-		ERR("MAC init timeout!\n");
-	}
-	WRITE_REG(priv, 0x6350, 0x0);
-	WRITE_REG(priv, 0x111c, 0x7ff);
-	for(i=40; i--;)
-	{
-		udelay(50);
-	}
-	WRITE_REG(priv, 0x111c, 0x0);
-
-	WRITE_REG(priv, regFRM_LENGTH, 0X3FE0);
-	WRITE_REG(priv, 0x1240, 0X10fd);
-    WRITE_REG(priv, regPAUSE_QUANT, 0x96);
-    WRITE_REG(priv, regRX_FIFO_SECTION, 0x800010);
-    WRITE_REG(priv, regTX_FIFO_SECTION, 0xE00010);
-    WRITE_REG(priv, regRX_FULLNESS, 0);
-    WRITE_REG(priv, regTX_FULLNESS, 0);
-    //  WRITE_REG(priv, regCTRLST,  regCTRLST_BASE | regCTRLST_RX_ENA | regCTRLST_TX_ENA);
-    WRITE_REG(priv, regCTRLST, 0xA13);//0x93//0x13
 
 } // bdx_CX4_hw_start
 
@@ -1357,8 +1423,10 @@ static int bdx_hw_start(struct bdx_priv *priv)
 		WRITE_REG(priv, 0x1040, 0x81644); /*ETHSD.L1_TX_DCNT  */
 		WRITE_REG(priv, 0x1044, 0x81644); /*ETHSD.L2_TX_DCNT  */
 		WRITE_REG(priv, 0x1048, 0x81644); /*ETHSD.L3_TX_DCNT  */
-		WRITE_REG(priv, regPAUSE_QUANT, 0x96);
-		WRITE_REG(priv, regRX_FIFO_SECTION, 0x800010);
+		WRITE_REG(priv, 0x12E0, 0x28);
+		WRITE_REG(priv, regPAUSE_QUANT, 0xFFFF);
+    	        WRITE_REG(priv, 0x6064, 0xF);
+		WRITE_REG(priv, regRX_FIFO_SECTION, 0x10);
 		WRITE_REG(priv, regTX_FIFO_SECTION, 0xE00010);
 		WRITE_REG(priv, regRX_FULLNESS, 0);
 		WRITE_REG(priv, regTX_FULLNESS, 0);
@@ -1377,7 +1445,7 @@ static int bdx_hw_start(struct bdx_priv *priv)
     /*WRITE_REG(priv, regGTMR0, ((GTMR_SEC * 2) & GTMR_DATA)); */
     bdx_restore_mac(priv->ndev, priv);
 
-    WRITE_REG(priv, regGMAC_RXF_A, GMAC_RX_FILTER_OSEN |
+    WRITE_REG(priv, regGMAC_RXF_A, GMAC_RX_FILTER_OSEN | GMAC_RX_FILTER_TXFC |
               GMAC_RX_FILTER_AM | GMAC_RX_FILTER_AB);
 
   //  bdx_setAffinity(priv->pdev->irq);
@@ -2003,7 +2071,7 @@ static void bdx_setmulti(struct net_device *ndev)
     struct bdx_priv *priv = netdev_priv(ndev);
 
      u32 rxf_val =
-        GMAC_RX_FILTER_AM | GMAC_RX_FILTER_AB | GMAC_RX_FILTER_OSEN;
+        GMAC_RX_FILTER_AM | GMAC_RX_FILTER_AB | GMAC_RX_FILTER_OSEN | GMAC_RX_FILTER_TXFC;
     int i;
 
    ENTER;
@@ -2706,7 +2774,9 @@ static int bdx_rx_receive(struct bdx_priv *priv, struct rxd_fifo *f, int budget)
     START_TIMER(bdx_rx_receive);
     ENTER;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,11,0))
     priv->ndev->last_rx = jiffies;
+#endif
     f->m.wptr       = READ_REG(priv, f->m.reg_WPTR) & TXF_WPTR_WR_PTR;
     size = f->m.wptr - f->m.rptr;
     if (size < 0)
@@ -3408,15 +3478,20 @@ static int bdx_tx_transmit(struct sk_buff *skb, struct net_device *ndev)
     int 				txd_vlan_id  	= 0;
     int 				txd_vtag     	= 0;
     int 				txd_mss      	= 0;
+    int					rVal			= NETDEV_TX_OK;
     unsigned int 		pkt_len;
     struct txd_desc 	*txdd;
-    int 				nr_frags, len, rVal, copyBytes;
+    int 				nr_frags, len, copyBytes;
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7,0)
     unsigned long 		flags;
     int					spinLocked;
 #endif
 
     ENTER;
+    if (!(priv->state & BDX_STATE_STARTED))
+    {
+      return -1;
+    }
     do
     {
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7,0)
@@ -3450,8 +3525,8 @@ static int bdx_tx_transmit(struct sk_buff *skb, struct net_device *ndev)
 		}
 		if (vlan_tx_tag_present(skb))
 		{
-			/*Cut VLAN ID to 12 bits */
-			txd_vlan_id = vlan_tx_tag_get(skb) & BITS_MASK(12);
+			/* Don't cut VLAN ID to 12 bits */
+			txd_vlan_id = vlan_tx_tag_get(skb);
 			txd_vtag = 1;
 		}
 		txdd->va_hi    = copyBytes;
@@ -3515,10 +3590,10 @@ static int bdx_tx_transmit(struct sk_buff *skb, struct net_device *ndev)
 				WRITE_REG(priv, f->m.reg_WPTR, f->m.wptr & TXF_WPTR_WR_PTR);
 			}
 		}
-#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7,0)
-		ndev->trans_start = jiffies;
-#else
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 7, 0) || (defined(RHEL_RELEASE_CODE) && RHEL_RELEASE_CODE >= RHEL_RELEASE_VERSION(7,4)))
 		netif_trans_update(ndev);
+#else
+		ndev->trans_start = jiffies;
 #endif
 		priv->net_stats.tx_packets++;
 		priv->net_stats.tx_bytes += pkt_len;
@@ -3527,9 +3602,9 @@ static int bdx_tx_transmit(struct sk_buff *skb, struct net_device *ndev)
 			DBG("%s: %s: TX Q STOP level %d\n", BDX_DRV_NAME, ndev->name, priv->tx_level);
 			netif_stop_queue(ndev);
 		}
-		rVal = NETDEV_TX_OK;
 
     } while (0);
+
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 7,0)
     if (spinLocked)
     {
@@ -4020,6 +4095,10 @@ static int __init bdx_probe(struct pci_dev *pdev, const struct pci_device_id *en
 		ndev->vlan_features |= NETIF_F_HIGHDMA;
 #endif
 #endif
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0)
+	ndev->min_mtu = ETH_ZLEN;
+	ndev->max_mtu = BDX_MAX_MTU;
+#endif
 	/************** PRIV ****************/
 	priv = nic->priv = netdev_priv(ndev);
 
@@ -4120,7 +4199,7 @@ static int __init bdx_probe(struct pci_dev *pdev, const struct pci_device_id *en
 
 	print_eth_id(ndev);
 
-    bdx_no_hotplug();
+    bdx_scan_pci();
 #ifdef TN40_MEMLOG
     memLogInit();
 #endif
@@ -4841,7 +4920,11 @@ static void __exit bdx_remove(struct pci_dev *pdev)
     pci_disable_device(pdev);
     pci_set_drvdata(pdev, NULL);
     vfree(nic);
-
+#ifdef _DRIVER_RESUME_
+	spin_lock(&g_lock);
+	g_ndevices_loaded -= 1;
+	spin_unlock(&g_lock);
+#endif
     MSG("Device removed\n");
 
     RET();
@@ -4936,18 +5019,20 @@ __refdata static struct pci_driver bdx_pci_driver =
 };
 
 //-------------------------------------------------------------------------------------------------
+#ifndef _DRIVER_RESUME_
 
-static int bdx_hotplug_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+int bdx_no_hotplug(struct pci_dev *pdev, const struct pci_device_id *ent)
 {
 
 	ERR("rescan/hotplug is *NOT* supported!, please use rmmod/insmod instead\n");
 	RET(-1);
 
-} // bdx_hotplug_probe
+} // bdx_no_hotplug
 
+#endif
 //-------------------------------------------------------------------------------------------------
 
-static void __init bdx_no_hotplug(void)
+static void __init bdx_scan_pci(void)
 {
 	int j, nDevices=0, nLoaded;
 	struct pci_dev *dev = NULL;
@@ -4958,7 +5043,7 @@ static void __init bdx_no_hotplug(void)
 		while ((dev = pci_get_subsys(bdx_pci_tbl[j].vendor, bdx_pci_tbl[j].device, bdx_pci_tbl[j].subvendor, bdx_pci_tbl[j].subdevice, dev)))
 		{
 			nDevices += 1;
-			MSG("%d %x:%x:%x:%x\n",nDevices, bdx_pci_tbl[j].vendor, bdx_pci_tbl[j].device, bdx_pci_tbl[j].subvendor, bdx_pci_tbl[j].subdevice);
+			MSG("%d %04x:%04x:%04x:%04x\n",nDevices, bdx_pci_tbl[j].vendor, bdx_pci_tbl[j].device, bdx_pci_tbl[j].subvendor, bdx_pci_tbl[j].subdevice);
 			if (nDevices > 20)
 			{
 				ERR("to many devices detected ?!\n");
@@ -4971,14 +5056,16 @@ static void __init bdx_no_hotplug(void)
 	g_ndevices = nDevices;
 	g_ndevices_loaded += 1;
 	nLoaded = g_ndevices_loaded;
+#ifndef _DRIVER_RESUME_
 	if (g_ndevices_loaded >= g_ndevices)	// all loaded
 	{
-		bdx_pci_driver.probe = bdx_hotplug_probe;
+		bdx_pci_driver.probe = bdx_no_hotplug;
 	}
+#endif
 	spin_unlock(&g_lock);
 	MSG("detected %d cards, %d loaded\n", nDevices, nLoaded);
 
-} // bdx_no_hotplug()
+} // bdx_scan_pci()
 
 //-------------------------------------------------------------------------------------------------
 

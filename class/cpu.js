@@ -19,148 +19,169 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+var config = require('../config/config');
 
 class CPU {
-	constructor(id) {
-		this.id = id;
-		this.ipAddr = "";
-		this.port = "9000";
-		this.hostSideIPaddress = "";
-		this.rtmpPort = "";
-		this.httpPort = "";
-		this.icecastPort = "";
-		this.gstreamerPort = "9100";
-		this.fayePort = "8300";
-		this.qtsPort = "";
-		this.processor = "";
-		this.memory = "";
-		this.mac = "";
-		this.gpu = "";
-	}
+    constructor(id) {
+        this.id = id;
+        this.ipAddr = "";
+        this.port = config.cardPorts.container_ffmpeg;
+        this.hostSideIPaddress = "";
+        this.rtmpPort = "";
+        this.httpPort = "";
+        this.icecastPort = "";
+        this.gstreamerPort = config.cardPorts.container_gstreamer;
+        this.fayePort = config.cardPorts.faye;
+        this.qtsPort = "";
+        this.qtsName = "";
+        this.version = "";
+        this.processor = "";
+        this.memory = "";
+        this.mac = "";
+        this.gpu = "";
+    }
 
-	cpuID() {
-		return this.id;
-	}
+    cpuID() {
+        return this.id;
+    }
 
-	setIPAddr(data) {
-		this.ipAddr = data;
-	}
+    setIPAddr(data) {
+        this.ipAddr = data;
+    }
 
-	setPort(data) {
-		this.port = data;
-	}
+    setPort(data) {
+        this.port = data;
+    }
 
-	setHostSideIPaddress(data) {
-		this.hostSideIPaddress = data;
-	}
+    setHostSideIPaddress(data) {
+        this.hostSideIPaddress = data;
+    }
 
-	setRtmpPort(data) {
-		this.rtmpPort = data;
-	}
+    setRtmpPort(data) {
+        this.rtmpPort = data;
+    }
 
-	setHttpPort(data) {
-		this.httpPort = data;
-	}
+    setHttpPort(data) {
+        this.httpPort = data;
+    }
 
-	setIcecastPort(data) {
-		this.icecastPort = data;
-	}
+    setIcecastPort(data) {
+        this.icecastPort = data;
+    }
 
-	setGstreamerPort(data) {
-		this.gstreamerPort = data;
-	}
+    setGstreamerPort(data) {
+        this.gstreamerPort = data;
+    }
 
-	setFayePort(data) {
-		this.fayePort = data;
-	}
+    setFayePort(data) {
+        this.fayePort = data;
+    }
 
-	setQtsPort(data) {
-		this.qtsPort = data;
-	}
+    setQtsPort(data) {
+        this.qtsPort = data;
+    }
 
-	setProcessor(data) {
-		this.processor = data;
-	}
+    setProcessor(data) {
+        this.processor = data;
+    }
 
-	setMemory(data) {
-		this.memory = data;
-	}
+    setMemory(data) {
+        this.memory = data;
+    }
 
-	setMac(data) {
-		this.mac = data;
-	}
+    setMac(data) {
+        this.mac = data;
+    }
 
-	setGPU(data) {
-		this.gpu = data;
-	}
+    setQtsName(data) {
+        this.qtsName = data;
+    }
 
-	setConfig(obj) {
-		this.ipAddr = obj.ipaddress == undefined ? this.ipAddr : obj.ipaddress;
-		this.port = obj.port == undefined ? this.port : obj.port;
-		this.hostSideIPaddress = obj.hostSideIPaddress == undefined ? this.hostSideIPaddress : obj.hostSideIPaddress;
-		this.rtmpPort = obj.rtmpPort == undefined ? this.rtmpPort : obj.rtmpPort;
-		this.httpPort = obj.httpPort == undefined ? this.httpPort : obj.httpPort;
-		this.icecastPort = obj.icecastPort == undefined ? this.icecastPort : obj.icecastPort;
-		this.gstreamerPort = obj.gstreamerPort == undefined ? this.gstreamerPort : obj.gstreamerPort;
-		this.fayePort = obj.fayePort == undefined ? this.fayePort : obj.fayePort;
-		this.processor = obj.processor == undefined ? this.processor : obj.processor;
-		this.memory = obj.memory == undefined ? this.memory : obj.memory;
-		this.mac = obj.mac == undefined ? this.mac : obj.mac;
-		this.gpu = obj.gpu == undefined ? this.gpu : obj.gpu;
-		this.qtsPort = obj.qtsPort == undefined ? this.qtsPort : obj.qtsPort;
-	}
+    setVersion(data) {
+        this.version = data;
+    }
 
-	getIPAddr() {
-		return this.ipAddr;
-	}
+    setGPU(data) {
+        this.gpu = data;
+    }
 
-	getPort() {
-		return this.port;
-	}
+    setConfig(obj) {
+        this.ipAddr = obj.ipaddress == undefined ? this.ipAddr : obj.ipaddress;
+        this.port = obj.port == undefined ? this.port : obj.port;
+        this.hostSideIPaddress = obj.hostSideIPaddress == undefined ? this.hostSideIPaddress : obj.hostSideIPaddress;
+        this.rtmpPort = obj.rtmpPort == undefined ? this.rtmpPort : obj.rtmpPort;
+        this.httpPort = obj.httpPort == undefined ? this.httpPort : obj.httpPort;
+        this.icecastPort = obj.icecastPort == undefined ? this.icecastPort : obj.icecastPort;
+        this.gstreamerPort = obj.gstreamerPort == undefined ? this.gstreamerPort : obj.gstreamerPort;
+        this.fayePort = obj.fayePort == undefined ? this.fayePort : obj.fayePort;
+        this.processor = obj.processor == undefined ? this.processor : obj.processor;
+        this.memory = obj.memory == undefined ? this.memory : obj.memory;
+        this.mac = obj.mac == undefined ? this.mac : obj.mac;
+        this.gpu = obj.gpu == undefined ? this.gpu : obj.gpu;
+        this.qtsPort = obj.qtsPort == undefined ? this.qtsPort : obj.qtsPort;
+        this.qtsName = obj.qtsName == undefined ? this.qtsName : obj.qtsName;
+        this.version = obj.version == undefined ? this.version : obj.version;
+    }
 
-	getHostSideIPaddress() {
-		return this.hostSideIPaddress;
-	}
+    getIPAddr() {
+        return this.ipAddr;
+    }
 
-	getRtmpPort() {
-		return this.rtmpPort;
-	}
+    getPort() {
+        return this.port;
+    }
 
-	getHttpPort() {
-		return this.httpPort;
-	}
+    getHostSideIPaddress() {
+        return this.hostSideIPaddress;
+    }
 
-	getIcecastPort() {
-		return this.icecastPort;
-	}
+    getRtmpPort() {
+        return this.rtmpPort;
+    }
 
-	getGstreamerPort() {
-		return this.gstreamerPort;
-	}
+    getHttpPort() {
+        return this.httpPort;
+    }
 
-	getFayePort() {
-		return this.fayePort;
-	}
+    getIcecastPort() {
+        return this.icecastPort;
+    }
 
-	getQtsPort() {
-		return this.qtsPort;
-	}
+    getGstreamerPort() {
+        return this.gstreamerPort;
+    }
 
-	getProcessor() {
-		return this.processor;
-	}
+    getFayePort() {
+        return this.fayePort;
+    }
 
-	getMemory() {
-		return this.memory;
-	}
+    getQtsPort() {
+        return this.qtsPort;
+    }
 
-	getMac() {
-		return this.mac;
-	}
+    getProcessor() {
+        return this.processor;
+    }
 
-	getGPU() {
-		return this.gpu;
-	}
+    getMemory() {
+        return this.memory;
+    }
+
+    getMac() {
+        return this.mac;
+    }
+
+    getQtsName() {
+        return this.qtsName;
+    }
+
+    getVersion() {
+        return this.version;
+    }
+
+    getGPU() {
+        return this.gpu;
+    }
 }
 
 module.exports = CPU;

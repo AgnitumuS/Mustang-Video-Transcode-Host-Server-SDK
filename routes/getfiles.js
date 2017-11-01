@@ -19,32 +19,31 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var filesAPI = express.Router();
 var fs = require('fs');
 
 // body : { path : url }
 filesAPI.route('/')
-	.post(function(req, res) {
-		fs.readdir(req.body.path, function(err, filenames) {
-			if (err) {
-			  onError(err);
-			  return;
-			}
-			var array = [];
-			var i = 0;
-			while (filenames[i] != undefined) {
-				var element = filenames[i].split('');
-				if (filenames[i] != undefined && element[0] != '.') {
-					array.push(filenames[i]);
-					i++;
-				} else {
-					i++
-				}
-			}
-			res.json(array);
-		});
-	});
+    .post(function(req, res) {
+        fs.readdir(req.body.path, function(err, filenames) {
+            if (err) {
+                onError(err);
+                return;
+            }
+            var array = [];
+            var i = 0;
+            while (filenames[i] != undefined) {
+                var element = filenames[i].split('');
+                if (filenames[i] != undefined && element[0] != '.') {
+                    array.push(filenames[i]);
+                    i++;
+                } else {
+                    i++
+                }
+            }
+            res.json(array);
+        });
+    });
 
 module.exports = filesAPI;

@@ -19,39 +19,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 const exec = require('child_process').exec;
 
 function getInactiveNetworkInterfaces() {
-	return new Promise(function(resolve, reject) {
-		var cmd = "ifconfig";
-		exec(cmd, (err, stdout, stderr) => {
-			if (err) {
-				console.log(err);
-			}
-			var array = stdout.split('\n');
-			var internetCards = [];
-			var cardNameCandidate = "";
-			var foundInet = false;
+    return new Promise(function(resolve, reject) {
+        var cmd = "ifconfig";
+        exec(cmd, (err, stdout, stderr) => {
+            if (err) {
+                console.log(err);
+            }
+            var array = stdout.split('\n');
+            var internetCards = [];
+            var cardNameCandidate = "";
+            var foundInet = false;
 
-			for (var i = 0; i < array.length; i++) {
-				var row = array[i].split(" ");
-				if (row[0] != "") {
-					if (foundInet == false && cardNameCandidate != "") {
-						internetCards.push(cardNameCandidate);
-					}
-					cardNameCandidate = row[0].replace(":", "");
-					foundInet = false;
-				} else if (array[i].indexOf('inet') != -1 && row[row.indexOf('inet')] === 'inet') {
-					foundInet = true;
-				}
-			}
-			if (internetCards.indexOf('lo') != -1) {
-				internetCards.splice(internetCards.indexOf('lo'), 1);
-			}
-			resolve(internetCards);
-		});
-	});
+            for (var i = 0; i < array.length; i++) {
+                var row = array[i].split(" ");
+                if (row[0] != "") {
+                    if (foundInet == false && cardNameCandidate != "") {
+                        internetCards.push(cardNameCandidate);
+                    }
+                    cardNameCandidate = row[0].replace(":", "");
+                    foundInet = false;
+                } else if (array[i].indexOf('inet') != -1 && row[row.indexOf('inet')] === 'inet') {
+                    foundInet = true;
+                }
+            }
+            if (internetCards.indexOf('lo') != -1) {
+                internetCards.splice(internetCards.indexOf('lo'), 1);
+            }
+            resolve(internetCards);
+        });
+    });
 }
 
 module.exports = getInactiveNetworkInterfaces;

@@ -19,24 +19,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var express = require('express');
 var cardsAPI = express.Router();
 var cardMap = require('../config/cardMap');
 
 cardsAPI.route('/')
-	.get(function(req, res) {
-		res.json(Object.keys(cardMap));
-	});
+    .get(function(req, res) {
+        res.json(Object.keys(cardMap));
+    });
 
 cardsAPI.route('/:cardid/cpus')
-	.get(function(req, res) {
-		if (cardMap[req.params.cardid] == undefined) {
-			res.json({Message : "Cardid not exist. Please check again!"});
-		} else {
-			var allIDs = cardMap[req.params.cardid].getAllCPUID();
-			res.json(allIDs);
-		}
-	});
+    .get(function(req, res) {
+        if (cardMap[req.params.cardid] == undefined) {
+            res.json({
+                Message: "Cardid not exist. Please check again!"
+            });
+        } else {
+            var allIDs = cardMap[req.params.cardid].getAllCPUID();
+            res.json(allIDs);
+        }
+    });
 
 module.exports = cardsAPI;

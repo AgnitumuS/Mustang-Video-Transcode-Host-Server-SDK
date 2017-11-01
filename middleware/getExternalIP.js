@@ -19,38 +19,46 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var network = require('network');
 var config = require('../config/config');
 var os = require('os');
 
 function getExternalIP() {
-	return new Promise(function(resolve, reject) {
-		network.get_private_ip(function(err, ip) {
-			resolve(ip);
-		})
-	})
-	.then(function(externalIP) {
-		var result = "";
-		var interfaces = os.networkInterfaces();
-		for (var key in interfaces) {
-			if (interfaces.hasOwnProperty(key)) {
-				for (var j = 0; j < interfaces[key].length; j++) {
-					if (interfaces[key][j].family == 'IPv4' && interfaces[key][j].address == externalIP) {
-						config.externalIP = externalIP;
-						var obj = {
-							name : key,
-							address : externalIP
-						}
-						return result = obj;
-					}
-				}
-			}
-		}
-	})
-	.catch(function(err) {
-		console.log(err);
-	});
+    return new Promise(function(resolve, reject) {
+            network.get_private_ip(function(err, ip) {
+                resolve(ip);
+            })
+        })
+        .then(function(externalIP) {
+            var result = "";
+            var interfaces = os.networkInterfaces();
+            for (var key in interfaces) {
+                if (interfaces.hasOwnProperty(key)) {
+                    for (var j = 0; j < interfaces[key].length; j++) {
+                        if (interfaces[key][j].family == 'IPv4' && interfaces[key][j].address == externalIP) {
+                            config.externalIP = externalIP;
+                            var obj = {
+                                name: key,
+                                address: externalIP
+                            }
+                            return result = obj;
+                        }
+                    }
+                }
+            }
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
 }
+
+function syncExternalIP() {
+    setTimeout(function() {
+        syncExternalIP();
+        getExternalIP();
+    }, 60 * 1000);
+}
+
+syncExternalIP();
 
 module.exports = getExternalIP;

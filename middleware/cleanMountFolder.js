@@ -19,71 +19,89 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 var db = require('../db/dbSqlite').sqliteDB;
 var fs = require('fs');
 var config = require('../config/config');
-const { exec } = require('child_process');
+const {
+    exec
+} = require('child_process');
 
-function cleanMountFolder() {
-	setInterval(function() {
-		db.serialize(function() {
-			db.all("SELECT * from mountTable", function(err, data) {
-				if (data != undefined) {
-					for (var i = 0; i < data.length; i++) {
-						var mountedFolder = data[i].mountedFolder;
-						var targetPath = config.hostMountedDir + "/" + mountedFolder;
-						cleaningCheck(targetPath, data[i].sourceDirPath);
-					}
-				}
-			});
-		});
-	}, 1 * 30 * 1000);
+function cleanMountFolder(initStart) {
+    if (initStart == true) {
+        db.serialize(function() {
+            db.run("CREATE TABLE IF NOT EXISTS mountTable (sourceDirPath TEXT, mountedFolder TEXT)");
+            db.all("SELECT * from mountTable", function(err, data) {
+                if (data != undefined) {
+                    for (var i = 0; i < data.length; i++) {
+                        var mountedFolder = data[i].mountedFolder;
+                        var targetPath = config.hostMountedDir + "/" + mountedFolder;
+                        cleaningCheck(targetPath, data[i].sourceDirPath);
+                    }
+                }
+            });
+        });
+    } else {
+        setTimeout(function() {
+            db.serialize(function() {
+                db.run("CREATE TABLE IF NOT EXISTS mountTable (sourceDirPath TEXT, mountedFolder TEXT)");
+                db.all("SELECT * from mountTable", function(err, data) {
+                    if (data != undefined) {
+                        for (var i = 0; i < data.length; i++) {
+                            var mountedFolder = data[i].mountedFolder;
+                            var targetPath = config.hostMountedDir + "/" + mountedFolder;
+                            cleaningCheck(targetPath, data[i].sourceDirPath);
+                        }
+                    }
+                });
+            });
+            cleanMountFolder();
+        }, 1 * 30 * 1000);
+    }
 }
 
 function cleaningCheck(targetPath, sourceDirPath) {
-	try {
-		if (fs.existsSync(targetPath)) {
-	        var cmd = "umount " + targetPath;
-	        exec(cmd, (err, stdout, stderr) => {
-	            if (err) {
-	                // console.error(err);
-	            }
-	            removeDorectory(targetPath);
-	            if (!fs.existsSync(targetPath)) {
-					deleteFromMountTable(sourceDirPath);
-	            }
-	        });
-		} else {
-			deleteFromMountTable(sourceDirPath);
-		}
-	} catch(err) {
-		// console.log(err);
-	}
+    try {
+        if (fs.existsSync(targetPath)) {
+            var cmd = 'umount "' + targetPath + '"';
+            exec(cmd, (err, stdout, stderr) => {
+                if (err) {
+                    // console.error(err);
+                }
+                removeDorectory(targetPath);
+                if (!fs.existsSync(targetPath)) {
+                    deleteFromMountTable(sourceDirPath);
+                }
+            });
+        } else {
+            deleteFromMountTable(sourceDirPath);
+        }
+    } catch (err) {
+        // console.log(err);
+    }
 }
 
 function removeDorectory(targetPath) {
     try {
-	    fs.rmdir(targetPath, function(err) {
-	    	if (err) {
-	    		// console.log(err);
-	    	}
-	    });
-    } catch(err) {
-    	// console.log(err);
+        fs.rmdir(targetPath, function(err) {
+            if (err) {
+                // console.log(err);
+            }
+        });
+    } catch (err) {
+        // console.log(err);
     }
 }
 
 function deleteFromMountTable(sourceDirPath) {
-	try {
-		db.run("DELETE from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, response) {
-			if (err) {
-				// console.log(err);
-			}
-		});		
-	} catch(err) {
-		// console.log(err);
-	}
+    try {
+        db.run("DELETE from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, response) {
+            if (err) {
+                // console.log(err);
+            }
+        });
+    } catch (err) {
+        // console.log(err);
+    }
 }
 
 module.exports = cleanMountFolder;
