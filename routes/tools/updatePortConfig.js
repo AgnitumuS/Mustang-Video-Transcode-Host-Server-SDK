@@ -8,7 +8,6 @@ var getUsedPorts = require('./getUsedPorts');
 function updatePortConfig(reqBody) {
     return Promise.resolve(constructUsedPortMap())
         .then(function(usedPortMap) {
-            console.log(usedPortMap);
             return new Promise(function(resolve, reject) {
                 var content = fs.readFileSync(config.routeMapPath, "utf8").split(/\r?\n/);
                 var obj = {
@@ -67,8 +66,8 @@ function checkAndUpdatePort(reqBody, row, usedPortMap) {
     var hit = false;
 
     if (targetIP == cpuip) {
-        switch (inwardPort) {
-            case "1935":
+        switch (Number.parseInt(inwardPort)) {
+            case config.cardPorts.rtmp:
                 if (reqBody.rtmpPort != null && reqBody.rtmpPort != "") {
                     if (usedPortMap.indexOf(reqBody.rtmpPort) == -1) {
                         row[row.indexOf('--dport') + 1] = reqBody.rtmpPort;
@@ -78,7 +77,7 @@ function checkAndUpdatePort(reqBody, row, usedPortMap) {
                     }
                 }
                 break;
-            case "8000":
+            case config.cardPorts.http:
                 if (reqBody.httpPort != null && reqBody.httpPort != "") {
                     if (usedPortMap.indexOf(reqBody.httpPort) == -1) {
                         row[row.indexOf('--dport') + 1] = reqBody.httpPort;
@@ -88,7 +87,7 @@ function checkAndUpdatePort(reqBody, row, usedPortMap) {
                     }
                 }
                 break;
-            case "8080":
+            case config.cardPorts.qts:
                 if (reqBody.qtsPort != null && reqBody.qtsPort != "") {
                     if (usedPortMap.indexOf(reqBody.qtsPort) == -1) {
                         row[row.indexOf('--dport') + 1] = reqBody.qtsPort;
@@ -98,7 +97,7 @@ function checkAndUpdatePort(reqBody, row, usedPortMap) {
                     }
                 }
                 break;
-            case "8100":
+            case config.cardPorts.icecast:
                 if (reqBody.icecastPort != null && reqBody.icecastPort != "") {
                     if (usedPortMap.indexOf(reqBody.icecastPort) == -1) {
                         row[row.indexOf('--dport') + 1] = reqBody.icecastPort;
