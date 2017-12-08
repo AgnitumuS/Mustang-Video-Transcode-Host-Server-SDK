@@ -365,9 +365,14 @@ function remove_bridge(bridgeName) {
 }
 
 function iptables(outcard) {
-    var homePath = "/usr/local/mvt_data";
-    if (fs.existsSync(homePath + 'route.sh') === true) {
-        fs.unlinkSync(homePath + 'route.sh');
+    var homePath = "";
+    if (config.platform == "linux") {
+        homePath = "/usr/local/mvt_data";
+    } else if (config.platform == "qts") {
+        homePath = config.rootDirName + "/config";
+    }
+    if (fs.existsSync(homePath + '/route.sh') === true) {
+        fs.unlinkSync(homePath + '/route.sh');
     }
     fs.writeFileSync(homePath + '/route.sh', 'echo \"1\" > /proc/sys/net/ipv4/ip_forward\n');
     fs.appendFileSync(homePath + '/route.sh', 'iptables -F\n');
@@ -387,7 +392,12 @@ function iptables(outcard) {
 }
 
 function add_iptables(ip, outcard, ports) {
-    var homePath = "/usr/local/mvt_data";
+    var homePath = "";
+    if (config.platform == "linux") {
+        homePath = "/usr/local/mvt_data";
+    } else if (config.platform == "qts") {
+        homePath = config.rootDirName + "/config";
+    }
     fs.appendFileSync(homePath + '/route.sh', 'iptables -t nat -A PREROUTING -p tcp -i ' + outcard + ' --dport ' + ports.nas + ' -j DNAT --to-destination ' + ip + ':' + config.cardPorts.qts + '\n')
     fs.appendFileSync(homePath + '/route.sh', 'iptables -t nat -A PREROUTING -p tcp -i ' + outcard + ' --dport ' + ports.hls + ' -j DNAT --to-destination ' + ip + ':' + config.cardPorts.http + '\n')
     fs.appendFileSync(homePath + '/route.sh', 'iptables -t nat -A PREROUTING -p tcp -i ' + outcard + ' --dport ' + ports.rtmp + ' -j DNAT --to-destination ' + ip + ':' + config.cardPorts.rtmp + '\n')
@@ -395,7 +405,12 @@ function add_iptables(ip, outcard, ports) {
 }
 
 function exe_iptables() {
-    var homePath = "/usr/local/mvt_data";
+    var homePath = "";
+    if (config.platform == "linux") {
+        homePath = "/usr/local/mvt_data";
+    } else if (config.platform == "qts") {
+        homePath = config.rootDirName + "/config";
+    }
     return new Promise(function(resolve, reject) {
         if (fs.existsSync(homePath + "/route.sh") == false) {
             var str = "route.sh have not established";
@@ -435,8 +450,6 @@ function groupNewInterface(bridgeName, interfaces) {
                     str = str + interfaces[i] + " ";
                 }
                 var cmd = "brctl addif " + bridgeName + " " + str;
-                console.log("Command for group new interfaces while dhcp path");
-                console.log(cmd);
                 var proc = exec(cmd, function(error, stdout) {
                     if (error !== null) {
                         console.log('exec error: ' + error);
@@ -608,6 +621,34 @@ function writeToFile(data, targetPath) {
     });
 }
 
+function ubuntu_samba_nas(password, path) {
+    if (fs.existsSync("/etc/config/smb.conf") === true) {
+        return new Promise(function(resolve, reject) {
+                var proc = exec("chown -R mvt.administrators " + path, function(error, stdout) {
+                    if (error !== null) {
+                        console.log('exec error: ' + error);
+                    }
+                });
+
+                proc.stdout.on('data', function(data) {
+                    process.stdout.write(data);
+                });
+
+                proc.on('exit', function(code) {
+                    var str = "*************************************************************\n" +
+                        "************ chown mvt.administrators Completed! **********\n" +
+                        "*************************************************************\n";
+                    resolve({
+                        message: str
+                    });
+                });
+            })
+            .catch(function(err) {
+                console.log(err);
+            });
+    }
+}
+
 module.exports = {
     ubuntu_update: ubuntu_update,
     install_driver: install_driver,
@@ -622,5 +663,6 @@ module.exports = {
     groupNewInterface: groupNewInterface,
     ubuntu_dhcp_installation: ubuntu_dhcp_installation,
     ubuntu_dhcp: ubuntu_dhcp,
-    restart_dhcp: restart_dhcp
+    restart_dhcp: restart_dhcp,
+    ubuntu_samba_nas : ubuntu_samba_nas
 }

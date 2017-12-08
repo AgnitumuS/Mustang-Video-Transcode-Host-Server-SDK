@@ -57,11 +57,6 @@ function helper(hosts, inactiveNames, index, detectedIPs, detectedCards, interfa
                     interfaceIPGroup: interfaceIPGroup,
                     nonMunstangs: nonMunstangs
                 }
-                var names = ""
-                for (var i = 0; i < nonMunstangs.length; i++) {
-                    names = names + " " + nonMunstangs[i];
-                }
-                ungrounpInterfaces(names, bridgeName);
                 resolve(result);
             } else {
                 hosts = removeDetectedIPs(hosts, detectedIPs);
@@ -73,6 +68,7 @@ function helper(hosts, inactiveNames, index, detectedIPs, detectedCards, interfa
                     .then(function(dataObj) {
                         if (dataObj == undefined) {
                             nonMunstangs.push(inactiveNames[index]);
+                            ungrounpInterfaces(inactiveNames[index], bridgeName);
                         } else {
                             var responsedIP = dataObj.address;
                             var macAddr = dataObj.macAddr;
@@ -100,7 +96,7 @@ function pingIP(hosts, index, bridgeName) {
     var promiseArray = [];
     hosts.forEach(function(host) {
         var setting = {
-            timeout: 2
+            timeout: 10
         };
         var element = ping.promise.probe(host, setting);
         promiseArray.push(element);
@@ -130,14 +126,13 @@ function pingIP(hosts, index, bridgeName) {
             } else {
                 return Promise.resolve(ipMacMap(address, bridgeName))
                     .then(function(result) {
-                        var responsedIP = result.address;
-                        var macAddr = result.macAddr;
                         return new Promise(function(resolve, reject) {
-                                var result = {
-                                    address: responsedIP,
-                                    macAddr: macAddr
+                                var obj = {
+                                    address: result.address,
+                                    macAddr: result.macAddr
                                 }
-                                resolve(result);
+
+                                resolve(obj);
                             })
                             .catch(function(err) {
                                 console.log(err);
@@ -267,10 +262,10 @@ function buildInterfaceIPGroup(interfaceIPGroup, responsedIP, name) {
 
 function ungrounpInterfaces(names, bridgeName) {
     return new Promise(function(resolve, reject) {
-            if (names == 0) {
+            if (names == undefined || names == "") {
                 resolve("No Interfaces need to removed");
             } else {
-                var proc = exec("brctl delif " + bridgeName + names, function(error, stdout) {
+                var proc = exec("brctl delif " + bridgeName + " " + names, function(error, stdout) {
                     if (error !== null) {
                         console.log('exec error: ' + error);
                     }

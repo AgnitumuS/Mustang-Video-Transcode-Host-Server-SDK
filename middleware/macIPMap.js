@@ -23,7 +23,7 @@ var exec = require('child_process').exec;
 
 function macIPMap(macAddr) {
     return new Promise(function(resolve, reject) {
-        var proc = exec("arp -a | grep br_mvt0 | awk '{print $2,$4}'| sed 's/[()]//g'", function(error, stdout) {
+        var proc = exec("arp -a -n | grep br_mvt0 | grep ether | awk '{print $2,$4}'| sed 's/[()]//g'", function(error, stdout) {
             if (error !== null) {
                 console.log('exec error: ' + error);
             }

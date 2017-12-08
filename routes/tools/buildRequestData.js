@@ -36,7 +36,7 @@ var buildRequestData = function(body, apiMethod, fileextension) {
             for (var i = 0; i < body.outputs.length; i++) {
                 var filename = generateFilename(body.input_filepath, body.outputs[i].resolution);
                 var out = {};
-                out.name = path.dirname(body.input_filepath).replace(config.hostMountedDir, config.cardMountedDir) + "/output" + "/" + filename + i;
+                out.name = path.dirname(body.input_filepath).replace(config.hostMountedDir, config.cardMountedDir).replace(/\\/g, '/') + "/output" + "/" + filename + i;
                 out.resolution = body.outputs[i].resolution;
                 out.framerate = parseInt(body.outputs[i].framerate);
                 if (body.outputs[i].bitrateenable == false) {
@@ -51,7 +51,7 @@ var buildRequestData = function(body, apiMethod, fileextension) {
                 "transcode": "file2file",
                 "quickTranscodeEnable": body.quickTranscodeEnable == 1 ? true : false,
                 "data": {
-                    "path": body.input_filepath.replace(config.hostMountedDir, config.cardMountedDir)
+                    "path": body.input_filepath.replace(config.hostMountedDir, config.cardMountedDir).replace(/\\/g, '/')
                 },
                 "outputs": outputArr,
                 "output": {
@@ -99,7 +99,7 @@ var buildRequestData = function(body, apiMethod, fileextension) {
                 "jobId": body.jobid,
                 "transcode": "file2stream",
                 "data": {
-                    "path": body.input_filepath.replace(config.hostMountedDir, config.cardMountedDir)
+                    "path": body.input_filepath.replace(config.hostMountedDir, config.cardMountedDir).replace(/\\/g, '/')
                 },
                 "outputs": outputArr,
                 "output": {

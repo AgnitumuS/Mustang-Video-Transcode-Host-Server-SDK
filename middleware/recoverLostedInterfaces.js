@@ -30,19 +30,25 @@ var restart_dhcp = install.restart_dhcp;
 var pingMustangs = require('./pingMustangs');
 
 function recoverLostedInterfaces() {
+    var workingBridgeName = "";
+    if (config.platform == "linux") {
+        workingBridgeName = "br_temp";
+    } else if (config.platform == "qts") {
+        workingBridgeName = "br_nas";
+    }
     return Promise.resolve(getRecoverInterfaceList())
         .then(function(interfaceList) {
-            return Promise.resolve(setup_bridge("br_temp", "169.254.100.1"))
+            return Promise.resolve(setup_bridge(workingBridgeName, "169.254.100.1"))
                 .then(function(msg) {
                     console.log(msg.message);
                     return Promise.resolve(interfaceList);
                 });
         })
         .then(function(interfaceList) {
-            return Promise.resolve(pingMustangs("br_temp", true, interfaceList))
+            return Promise.resolve(pingMustangs(workingBridgeName, true, interfaceList))
                 .then(function(result) {
                     updateDetectedCards(result.detectedCards);
-                    return Promise.resolve(remove_bridge("br_temp"))
+                    return Promise.resolve(remove_bridge(workingBridgeName))
                         .then(function(msg) {
                             console.log(msg.message);
                             return Promise.resolve(groupNewInterface("br_mvt0", Object.keys(result.interfaceIPGroup)));
@@ -55,7 +61,11 @@ function recoverLostedInterfaces() {
         })
         .then(function(msg) {
             console.log(msg.message);
-            return Promise.resolve(restart_dhcp());
+            if (config.platform == "linux") {
+                return Promise.resolve(restart_dhcp());
+            } else if (config.platform == "qts") {
+                return Promise.resolve({message : "QTS DHCP done"});
+            }
         })
         .then(function(msg) {
             console.log(msg.message);
@@ -73,12 +83,18 @@ function getRecoverInterfaceList() {
         .then(function(allData) {
             var inactiveInterfaces = allData[0];
             var bridgeInterfaces = allData[1];
+            console.log("inactiveInterfaces:");
+            console.log(inactiveInterfaces);
+            console.log("interfaceList Already in br_mvt0");
+            console.log(bridgeInterfaces);
             var result = [];
             for (var i = 0; i < inactiveInterfaces.length; i++) {
                 if (bridgeInterfaces.indexOf(inactiveInterfaces[i]) == -1) {
                     result.push(inactiveInterfaces[i]);
                 }
             }
+            console.log("This is the interfaceList result");
+            console.log(result);
             return result;
         })
         .catch(function(err) {

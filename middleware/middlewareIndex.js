@@ -42,8 +42,10 @@ var middlewareIndex = {
     pingMustangs: require('./pingMustangs'),
     printProgressBar: require('./printProgressBar'),
     queryingCards: require('./queryingCards'),
+    queryingWindowsCards: require('./queryingWindowsCards'),
     recoverLostedInterfaces: require('./recoverLostedInterfaces'),
     sortCardMap: require('./sortCardMap'),
+    wakeupInterfaces : require('./wakeupInterfaces'),
     writeToDhcpdConf: require('./writeToDhcpdConf'),
     writeToSmbConf: require('./writeToSmbConf')
 }

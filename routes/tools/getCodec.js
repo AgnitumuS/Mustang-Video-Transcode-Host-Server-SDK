@@ -20,10 +20,14 @@
  * THE SOFTWARE.
  */
 const exec = require('child_process').exec;
+var config = require('../../config/config');
+var path = require('path');
 
 function getAudioCodec(filePath) {
+    var mediainfoCmd = getMediaInfoCmd();
+    filePath = path.normalize(filePath);
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Audio;%Format%," ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Audio;%Format%," ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -53,8 +57,9 @@ function getAudioCodec(filePath) {
 }
 
 function getVideoCodec(filePath) {
+    var mediainfoCmd = getMediaInfoCmd();
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%Format%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%Format%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -100,6 +105,18 @@ function getCodecInfo(filePath) {
         .catch(function(err) {
             console.log(err);
         });
+}
+
+function getMediaInfoCmd() {
+    if (config.platform == "" || config.platform == null) {
+        return undefined;
+    } else if (config.platform == "windows") {
+        mediainfoCmd = config.rootDirName + '\\MediaInfo\\mediainfo';
+        return mediainfoCmd;
+    } else {
+        mediainfoCmd = 'mediainfo';
+        return mediainfoCmd;
+    }
 }
 
 module.exports = {

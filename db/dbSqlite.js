@@ -20,13 +20,12 @@
  * THE SOFTWARE.
  */
 var sqlite3 = require('sqlite3').verbose();
-// var db = new sqlite3.Database('mvt_data');
+var db = new sqlite3.Database('mvt_data');
 var fs = require('fs');
 
 if (fs.existsSync("/usr/local/mvt_data") === false) {
     fs.mkdirSync("/usr/local/mvt_data");
 }
-db = new sqlite3.Database('/usr/local/mvt_data/mvt_data');
 
 module.exports = {
     sqliteDB: db

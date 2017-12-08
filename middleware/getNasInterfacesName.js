@@ -37,7 +37,7 @@ function getNasInterfacesName() {
 }
 
 function parseInfo(data) {
-    if (data == null || data.length == 0) {
+    if (data == null || data == undefined || data.length == 0) {
         return undefined;
     }
     var nameArray = [];

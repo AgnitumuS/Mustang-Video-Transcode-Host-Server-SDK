@@ -54,7 +54,8 @@ var apiIndex = {
     trafficInfo: require('./trafficInfo'),
     updateNetworkConfig: require('./updateNetworkConfig'),
     updateQtsName: require('./updateQtsName'),
-    vod: require('./vod')
+    vod: require('./vod'),
+    windowsips : require('./windowsips')
 }
 
 //******************** API ROUTE ***********************//
@@ -83,5 +84,6 @@ router.use('/trafficInfo', apiIndex.trafficInfo);
 router.use('/updateNetworkConfig', apiIndex.updateNetworkConfig);
 router.use('/updateQtsName', apiIndex.updateQtsName);
 router.use('/vod/jobs', apiIndex.vod);
+router.use('/windowsips', apiIndex.windowsips);
 
 module.exports = router;

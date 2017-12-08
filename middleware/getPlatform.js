@@ -25,17 +25,25 @@ var config = require('../config/config');
 var exec = require('child_process').exec;
 
 function getPlatform() {
-    if (process.platform == 'linux') {
-        var content = fs.readFileSync('/proc/self/cgroup', "utf8");
-        if (content.indexOf('docker') != -1) {
-            config.platform = 'docker';
+    return new Promise(function(resolve, reject) {
+        if (process.platform == 'linux') {
+            var content = fs.readFileSync('/proc/self/cgroup', "utf8");
+            if (content.indexOf('docker') != -1) {
+                config.platform = 'qts';
+            } else {
+                config.platform = 'linux';
+            }
+            resolve(config.platform);
+        } else if (process.platform.indexOf('win') != -1) {
+            config.platform = 'windows';
+            resolve(config.platform);
         } else {
-            config.platform = 'linux';
+            resolve(undefined);
         }
-        return config.platform;
-    } else {
-        return undefined;
-    }
+    })
+    .catch(function(err) {
+        console.log(err);
+    });
 }
 
 module.exports = getPlatform;

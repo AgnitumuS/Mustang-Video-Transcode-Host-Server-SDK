@@ -229,20 +229,31 @@ var startJob = function(inputJobID, callback) {
                             } else {
                                 console.log(body);
                                 if (body.message != "Success") {
-                                    if (body.data[0].hasOwnProperty("message")) {
-                                        db.run("UPDATE jobs SET " +
-                                            "error = 1," +
-                                            "errorlog = '" + JSON.stringify(body.data[0].message) + "'," +
-                                            "status = 3," +
-                                            "statusmessage = 'failed'" +
-                                            " WHERE jobid = " + dataObj.job.jobid);
-                                    } else if (body.data.data[0].hasOwnProperty("message")) {
-                                        db.run("UPDATE jobs SET " +
-                                            "error = 1," +
-                                            "errorlog = '" + JSON.stringify(body.data.data[0].message) + "'," +
-                                            "status = 3," +
-                                            "statusmessage = 'failed'" +
-                                            " WHERE jobid = " + dataObj.job.jobid);
+                                    if (body.data[0] != undefined) {
+                                        if (body.data[0].hasOwnProperty("message")) {
+                                            db.run("UPDATE jobs SET " +
+                                                "error = 1," +
+                                                "errorlog = '" + JSON.stringify(body.data[0].message) + "'," +
+                                                "status = 3," +
+                                                "statusmessage = 'failed'" +
+                                                " WHERE jobid = " + dataObj.job.jobid);
+                                        } else if (body.data.data[0].hasOwnProperty("message")) {
+                                            db.run("UPDATE jobs SET " +
+                                                "error = 1," +
+                                                "errorlog = '" + JSON.stringify(body.data.data[0].message) + "'," +
+                                                "status = 3," +
+                                                "statusmessage = 'failed'" +
+                                                " WHERE jobid = " + dataObj.job.jobid);
+                                        }
+                                    } else {
+                                        if (body.data.data[0].hasOwnProperty("message")) {
+                                            db.run("UPDATE jobs SET " +
+                                                "error = 1," +
+                                                "errorlog = '" + JSON.stringify(body.data.data[0].message) + "'," +
+                                                "status = 3," +
+                                                "statusmessage = 'failed'" +
+                                                " WHERE jobid = " + dataObj.job.jobid);
+                                        }
                                     }
                                     dataObj.msg = {
                                         jobId: dataObj.job.jobid,

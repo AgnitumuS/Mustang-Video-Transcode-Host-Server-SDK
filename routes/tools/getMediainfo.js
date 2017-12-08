@@ -22,8 +22,12 @@
 const exec = require('child_process').exec;
 var getVideoCodec = require('./getCodec').getVideoCodec;
 var getAudioCodec = require('./getCodec').getAudioCodec;
+var config = require('../../config/config');
+var path = require('path');
+var mediainfoCmd = "";
 
 function getMediaInfo(filePath) {
+    filePath = path.normalize(filePath);
     return Promise.all([
             getResolutionWidth(filePath),
             getResolutionHeight(filePath),
@@ -52,9 +56,23 @@ function getMediaInfo(filePath) {
         });
 }
 
+function setMediaInfoCmd() {
+    if (config.platform == "linux") {
+        mediainfoCmd = 'mediainfo';
+    } else if (config.platform == "qts") {
+        mediainfoCmd = 'mediainfo';
+    } else if (config.platform == "windows") {
+        mediainfoCmd = config.rootDirName + '\\MediaInfo\\mediainfo';
+    } else if (config.platform == "" || config.platform == null) {
+      setTimeout(function() {
+        setMediaInfoCmd();
+      }, 2000);
+    }
+}
+
 function getResolutionWidth(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%Width%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%Width%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -70,7 +88,7 @@ function getResolutionWidth(filePath) {
 
 function getResolutionHeight(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%Height%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%Height%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -86,7 +104,7 @@ function getResolutionHeight(filePath) {
 
 function getVideoBitrate(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%BitRate%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%BitRate%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -104,7 +122,7 @@ function getVideoBitrate(filePath) {
 
 function getFramerate(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%FrameRate%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%FrameRate%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -120,7 +138,7 @@ function getFramerate(filePath) {
 
 function getAspectRatio(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Video;%DisplayAspectRatio%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Video;%DisplayAspectRatio%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -136,7 +154,7 @@ function getAspectRatio(filePath) {
 
 function getDuration(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="General;%Duration%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="General;%Duration%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -155,7 +173,7 @@ function getDuration(filePath) {
 
 function getAudioBitrate(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo --Inform="Audio;%BitRate%" ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' --Inform="Audio;%BitRate%" ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -173,7 +191,7 @@ function getAudioBitrate(filePath) {
 
 function getVideoProfie(filePath) {
     return new Promise(function(resolve, reject) {
-        var cmd = 'mediainfo ' + '"' + filePath + '"';
+        var cmd = mediainfoCmd + ' ' + '"' + filePath + '"';
         exec(cmd, (err, stdout, stderr) => {
             if (err) {
                 console.log(err);
@@ -193,5 +211,7 @@ function getVideoProfie(filePath) {
         });
     });
 }
+
+setMediaInfoCmd();
 
 module.exports = getMediaInfo;

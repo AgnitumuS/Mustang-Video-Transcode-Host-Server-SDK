@@ -26,10 +26,39 @@ var config = require('../config/config');
 var sortCardMap = require('./sortCardMap');
 
 function loadPortInfo() {
-    if (fs.existsSync(config.routeMapPath) === false) {
+    if (config.platform == "windows") {
+        loadPortInfoWindows();
+    } else {
+        loadPortInfoLinux();
+    }
+}
+
+function loadPortInfoWindows() {
+    if (fs.existsSync(config.routeMapWindowsPath) === false) {
         return;
     } else {
-        var content = fs.readFileSync(config.routeMapPath, "utf-8").split('\n');
+        var reg = /\r\n|\n\r|\n|\r/g;
+        var content = fs.readFileSync(config.routeMapWindowsPath, "utf-8").replace(reg, "\n").split('\n');
+        for (var i = 0; i < content.length; i++) {
+            var row = content[i];
+            if (row.indexOf('listenport') != -1 && row.indexOf('connectport') != -1) {
+                var rowArray = row.split(' ');
+                var outwardPort = rowArray[rowArray.indexOf('v4tov4') + 1].split("=")[1];
+                var inwardPort = rowArray[rowArray.indexOf('v4tov4') + 3].split("=")[1];
+                var cpuip = rowArray[rowArray.indexOf('v4tov4') + 4].split("=")[1];
+                loadPortIntoCard(outwardPort, inwardPort, cpuip);
+            }
+        }
+        sortCardMap();
+    } 
+}
+
+function loadPortInfoLinux() {
+    var routePath = config.platform == "linux" ? config.routeMapPath : config.routeMapQtsPath;
+    if (fs.existsSync(routePath) === false) {
+        return;
+    } else {
+        var content = fs.readFileSync(routePath, "utf-8").split('\n');
         for (var i = 0; i < content.length; i++) {
             var row = content[i].split(' ');
             if (row.indexOf('--dport') != -1 && row.indexOf('--to-destination') != -1) {
@@ -40,7 +69,7 @@ function loadPortInfo() {
             }
         }
         sortCardMap();
-    }
+    }    
 }
 
 function loadPortIntoCard(outwardPort, inwardPort, cpuip) {
@@ -83,5 +112,7 @@ function loadPortIntoCard(outwardPort, inwardPort, cpuip) {
         }
     }
 }
+
+loadPortInfo();
 
 module.exports = loadPortInfo;

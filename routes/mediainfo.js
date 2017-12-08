@@ -22,6 +22,8 @@
 var express = require('express');
 var mediainfoAPI = express.Router();
 var exec = require('child_process').exec;
+var config = require('../config/config');
+var path = require('path');
 var fs = require('fs');
 
 mediainfoAPI.route('/')
@@ -53,14 +55,22 @@ mediainfoAPI.route('/')
                     Message: "No such file in the directory! Please check again!"
                 });
             } else {
-                var cmd = "mediainfo '" + req.body.path + "/" + req.body.filename + "'";
+                var cmd = "";
+                if (config.platform == "linux") {
+                    cmd = "mediainfo '" + req.body.path + "/" + req.body.filename + "'";
+                } else if (config.platform == "qts") {
+                    cmd = "mediainfo '" + req.body.path + "/" + req.body.filename + "'";
+                } else if (config.platform == "windows") {
+                    var cmd = path.dirname(__dirname) + '\\MediaInfo\\mediainfo "' + req.body.path + '\\' + req.body.filename + '"';
+                }
                 exec(cmd, (error, stdout, stderr) => {
                     if (error) {
                         console.error(`exec error: ${error}`);
                         return;
                     }
                     var data = `${stdout}`;
-                    data = data.split("\n");
+                    var reg = /\r\n|\n\r|\n|\r/g;
+                    data = data.replace(reg, "\n").split("\n");
                     var obj = {};
                     var currentKey = "";
                     for (var i = 0; i < data.length; i++) {

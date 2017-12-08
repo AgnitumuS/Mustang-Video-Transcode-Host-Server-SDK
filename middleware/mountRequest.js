@@ -21,6 +21,7 @@
  */
 var request = require('request');
 var cardMap = require('../config/cardMap');
+var config = require('../config/config');
 
 function mountRequest() {
     for (var key in cardMap) {
@@ -37,17 +38,46 @@ function requestCall(targetURL, hostIP, cardid, cpuid) {
     if (cardid != undefined) {
         targetURL = "http://" + cardMap[cardid].cpu(cpuid).getIPAddr() + ":" + cardMap[cardid].cpu(cpuid).getPort() + "/submachine/cardUsing";
     }
-    ipaddress = hostIP.split('.');
-    ipaddress[3] = "1";
-    ipaddress = ipaddress.join(".");
+    var data = {};
+    if (config.platform == "linux") {
+        ipaddress = hostIP.split('.');
+        ipaddress[3] = "1";
+        ipaddress = ipaddress.join(".");
 
-    var data = {
-        title: "mountVideo",
-        data: {
-            hostName: "mvt",
-            hostPassword: "anywaytest",
-            hostIP: "192.168.100.1",
-            hostFolderName: "share"
+        data = {
+            title: "mountVideo",
+            data: {
+                hostName: "mvt",
+                hostPassword: "anywaytest",
+                hostIP: "192.168.100.1",
+                hostFolderName: "share"
+            }
+        }
+    } else if (config.platform == "qts") {
+        ipaddress = hostIP.split('.');
+        ipaddress[3] = "1";
+        ipaddress = ipaddress.join(".");
+
+        data = {
+            title: "mountVideo",
+            data: {
+                hostName: "mvt",
+                hostPassword: "anywaytest",
+                hostIP: "192.168.100.1",
+                hostFolderName: "share"
+            }
+        }        
+    } else if (config.platform == "windows") {
+        data = {
+            title: "mountVideo",
+            data: {
+                hostName: "test",
+                hostPassword: "88888888",
+                hostIP: "192.168.137.1",
+                hostFolderName: "share",
+                smbVer : "2.0",
+                platform : "Windows10"
+            }
         }
     }
 

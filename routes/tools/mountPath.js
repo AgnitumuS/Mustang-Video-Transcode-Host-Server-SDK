@@ -26,8 +26,9 @@ const exec = require('child_process').exec;
 var db = require('../../db/dbSqlite').sqliteDB;
 
 function mountPath(inputPath, apiMethod, callback) {
-    if (!fs.existsSync(config.hostMountedDir + "/output")) {
-        fs.mkdir(config.hostMountedDir + "/output", function(err) {
+    outputPath = path.normalize(config.hostMountedDir + "/output");
+    if (!fs.existsSync(outputPath)) {
+        fs.mkdir(path.normalize(config.hostMountedDir + "/output"), function(err) {
             if (err) {
                 console.log(err);
             }
@@ -35,7 +36,7 @@ function mountPath(inputPath, apiMethod, callback) {
     }
     return new Promise(function(resolve, reject) {
         db.run("CREATE TABLE IF NOT EXISTS mountTable (sourceDirPath TEXT, mountedFolder TEXT)");
-        var sourceDirPath = path.dirname(inputPath);
+        var sourceDirPath = path.dirname(path.normalize(inputPath));
         if (sourceDirPath != config.hostMountedDir) {
             var mountCandidate = path.basename(sourceDirPath) + "_temp0";
             var filename = path.basename(inputPath);
@@ -45,20 +46,32 @@ function mountPath(inputPath, apiMethod, callback) {
                     if (data == undefined) {
                         db.get("SELECT * from mountTable WHERE mountedFolder = '" + mountCandidate + "'", function(err, dataRow) {
                             if (dataRow == undefined) {
-                                targetPath = config.hostMountedDir + "/" + mountCandidate;
+                                targetPath = path.normalize(config.hostMountedDir + "/" + mountCandidate);
                             } else {
                                 var temp = dataRow.mountedFolder.split("_temp");
                                 mountCandidate = temp[0] + "_temp" + (Number.parseInt(temp[1]) + 1);
-                                targetPath = config.hostMountedDir + "/" + mountCandidate;
+                                targetPath = path.normalize(config.hostMountedDir + "/" + mountCandidate);
                             }
                             insertRecord(sourceDirPath, mountCandidate);
                             if (!fs.existsSync(config.hostMountedDir + "/" + mountCandidate)) {
-                                fs.mkdir(config.hostMountedDir + "/" + mountCandidate, function(err) {
-                                    if (err) {
-                                        console.log(err);
-                                    }
-                                });
-                                var cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                                var cmd = "";
+                                if (config.platform == "linux") {
+                                    fs.mkdir(config.hostMountedDir + "/" + mountCandidate, function(err) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                    });
+                                    cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                                } else if (config.platform == "qts") {
+                                    fs.mkdir(config.hostMountedDir + "/" + mountCandidate, function(err) {
+                                        if (err) {
+                                            console.log(err);
+                                        }
+                                    });
+                                    cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                                } else if (config.platform == "windows") {
+                                    cmd = 'mklink /J "' + targetPath + '" "' + sourceDirPath + '"';
+                                }
                                 exec(cmd, (err, stdout, stderr) => {
                                     if (err) {
                                         console.error(err);
@@ -75,14 +88,19 @@ function mountPath(inputPath, apiMethod, callback) {
                             resolve(config.hostMountedDir + "/" + mountCandidate + "/" + filename);
                         });
                     } else {
-                        if (!fs.existsSync(config.hostMountedDir + "/" + data.mountedFolder)) {
-                            targetPath = config.hostMountedDir + "/" + data.mountedFolder;
-                            fs.mkdir(config.hostMountedDir + "/" + data.mountedFolder, function(err) {
-                                if (err) {
-                                    console.log(err);
-                                }
-                            });
-                            var cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                        if (!fs.existsSync(path.normalize(config.hostMountedDir + "/" + data.mountedFolder))) {
+                            targetPath = path.normalize(config.hostMountedDir + "/" + data.mountedFolder);
+                            var cmd = "";
+                            if (config.platform == "linux") {
+                              fs.mkdir(config.hostMountedDir + "/" + data.mountedFolder, function(err) {
+                                  if (err) {
+                                      console.log(err);
+                                  }
+                              });
+                              cmd = 'mount -o bind "' + sourceDirPath + '" "' + targetPath + '"';
+                            } else if (config.platform == "windows") {
+                              cmd = 'mklink /J "' + targetPath + '" "' + sourceDirPath + '"';
+                            }
                             exec(cmd, (err, stdout, stderr) => {
                                 if (err) {
                                     console.error(err);
@@ -93,9 +111,9 @@ function mountPath(inputPath, apiMethod, callback) {
                             if (apiMethod == "file2file" && !fs.existsSync(sourceDirPath + "/output")) {
                                 createOutput(sourceDirPath);
                             }
-                            resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
+                            resolve(path.normalize(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename));
                         } else {
-                            resolve(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename);
+                            resolve(path.normalize(config.hostMountedDir + "/" + data.mountedFolder + "/" + filename));
                         }
                     }
                 });
@@ -118,11 +136,11 @@ function insertRecord(sourceDirPath, mountedFolder) {
 }
 
 function createOutput(sourceDirPath) {
-    fs.mkdir(sourceDirPath + "/output", function(err) {
+    fs.mkdir(path.normalize(sourceDirPath + "/output"), function(err) {
         if (err) {
             console.log(err);
         }
-        exec('chmod 777 -R ' + '"' + sourceDirPath + '/output"', (err, stdout, stderr) => {
+        exec('chmod 777 -R ' + path.normalize('"' + sourceDirPath + '/output"'), (err, stdout, stderr) => {
             if (err) {
                 console.error(err);
             }

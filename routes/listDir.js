@@ -24,6 +24,7 @@ var listDirAPI = express.Router();
 var fs = require('fs');
 var path = require('path');
 var os = require('os');
+var exec = require('child_process').exec;
 var sortFileName = require('./tools/toolsIdx').sortFileName;
 
 listDirAPI.route('/')
@@ -69,10 +70,43 @@ listDirAPI.route('/')
         });
     });
 
+listDirAPI.route('/partitions')
+  .get(function(req, res) {
+      return new Promise(function(resolve, reject) {
+          var proc = exec("wmic logicaldisk get name\n", function(error, stdout) {
+              if (error !== null) {
+                  console.log('exec error: ' + error);
+              }
+              if (stdout == undefined) {
+                resolve(undefined);
+              } else {
+                var reg = /\r\n|\n\r|\n|\r/g;
+                data = stdout.replace(reg, "\n").split("\n");
+                resolve(data);
+              }
+          });
+      })
+      .then(function(data) {
+        var result = [];
+        for (var i = 0; i < data.length; i++) {
+          var element = data[i].trim();
+          if (element.toLowerCase() != "name" && element != "") {
+            result.push(element);
+          }
+        }
+        res.json(result);
+      })
+      .catch(function(err) {
+        console.log(err);
+      });
+  });
+
 function checkPathType(inputPath, name) {
     return new Promise(function(resolve, reject) {
         fs.stat(inputPath, function(err, stats) {
-            if (stats.isDirectory()) {
+            if (stats == undefined) {
+                resolve(undefined);
+            } else if (stats.isDirectory()) {
                 var obj = {
                     type: "directory",
                     name: name

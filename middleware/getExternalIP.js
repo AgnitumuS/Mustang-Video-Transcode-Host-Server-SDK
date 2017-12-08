@@ -30,6 +30,13 @@ function getExternalIP() {
             })
         })
         .then(function(externalIP) {
+            if (externalIP == undefined) {
+                var obj = {
+                    name : "",
+                    address : ""
+                }
+                return obj;
+            }
             var result = "";
             var interfaces = os.networkInterfaces();
             for (var key in interfaces) {

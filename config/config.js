@@ -23,11 +23,14 @@ var path = require('path');
 
 module.exports = {
     externalIP: "",
-    hostMountedDir: path.dirname(__dirname) + "/mvt_video",
+    rootDirName : path.dirname(__dirname),
+    hostMountedDir: path.normalize(path.dirname(__dirname) + "/mvt_video"),
     cardMountedDir: "/data",
     routeMapPath: "/usr/local/mvt_data/route.sh",
+    routeMapQtsPath : path.dirname(__dirname) + "/config/route.sh",
+    routeMapWindowsPath: path.normalize(path.dirname(__dirname) + "\\route.bat"),
     platform: "",
-    version: "1.04",
+    version: "1.05",
     cardids: [],
     detectedCards: {},
     interfaceIPGroup: {},

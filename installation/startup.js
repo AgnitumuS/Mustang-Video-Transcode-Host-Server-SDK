@@ -22,6 +22,7 @@
 var db = require('../db/dbSqlite').sqliteDB;
 var fs = require('fs');
 var config = require('../config/config');
+var startupWindows = require('./startupWindows');
 var install = require("./install");
 var ubuntu_update = install.ubuntu_update;
 var install_driver = install.install_driver;
@@ -36,6 +37,7 @@ var ubuntu_dhcp = install.ubuntu_dhcp;
 var groupNewInterface = install.groupNewInterface;
 var restart_dhcp = install.restart_dhcp;
 var ubuntu_dhcp_installation = install.ubuntu_dhcp_installation;
+var ubuntu_samba_nas = install.ubuntu_samba_nas;
 // module from middleware
 var middleware = require('../middleware/middlewareIndex');
 var getNetworkInterfaces = middleware.getNetworkInterfaces;
@@ -46,17 +48,31 @@ var queryingCards = middleware.queryingCards;
 var detectedCardsRecord = middleware.detectedCardsRecord;
 var recoverLostedInterfaces = middleware.recoverLostedInterfaces;
 var needToRecover = middleware.needToRecover;
+var getPlatform = middleware.getPlatform;
+var wakeupInterfaces = middleware.wakeupInterfaces;
 var prevInterfaceIPGroup = {};
 
 function startup(firstRound) {
-    if (fs.existsSync(config.routeMapPath) === false && firstRound) {
-        return Promise.resolve(newStart());
-    } else {
-        return Promise.resolve(generalStart(false));
-    }
+    return Promise.resolve(getPlatform())
+        .then(function(platform) {
+            if (platform == "linux") {
+                if (fs.existsSync(config.routeMapPath) === false && firstRound) {
+                    return Promise.resolve(startupUbuntu());
+                } else {
+                    return Promise.resolve(generalStart(false));
+                }                
+            } else if (platform == "qts") {
+                return Promise.resolve(generalStart(false));
+            } else if (platform == "windows") {
+                return Promise.resolve(startupWindows());
+            }
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
 }
 
-function newStart() {
+function startupUbuntu() {
     return Promise.resolve(install_driver())
         .then(function(msg) {
             console.log(msg.message);
@@ -87,6 +103,25 @@ function newStart() {
         });
 }
 
+function startupQts() {
+    if (fs.existsSync(config.routeMapQtsPath) == false) {
+        fs.writeFileSync(config.routeMapQtsPath, "");
+    }
+    ubuntu_samba_nas();
+    return Promise.resolve(wakeupInterfaces())
+        .then(function(msg) {
+            console.log(msg);
+            return Promise.resolve(setup_bridge("br_nas", "169.254.100.1"));
+        })
+        .then(function(msg) {
+            console.log(msg);
+            return Promise.resolve(generalStart(true));
+        })
+        .catch(function(err) {
+            console.log(err);
+        });
+}
+
 function generalStart(initStart) {
     return Promise.resolve(getNetworkInterfaces())
         .then(function(networkInterfaces) {
@@ -100,14 +135,32 @@ function generalStart(initStart) {
                 if (array.indexOf("br_mvt0") == -1) {
                     detectedCardsRecord.resetRecord();
                     console.log("Bridge not found, setup a new one.");
-                    return Promise.resolve(setup_bridge("br_mvt0", "169.254.100.1"))
-                        .then(function(msg) {
-                            console.log(msg.message);
-                            return new Promise(function(resolve, reject) {
-                                resolve("setted");
-                                reject("Bridge Cammand Error!");
+                    if (config.platform == "linux") {
+                        return Promise.resolve(setup_bridge("br_mvt0", "169.254.100.1"))
+                            .then(function(msg) {
+                                console.log(msg.message);
+                                return new Promise(function(resolve, reject) {
+                                    resolve("setted");
+                                    reject("Bridge Cammand Error!");
+                                })
+                            });
+                    } else if (config.platform == "qts") {
+                        return Promise.resolve(startupQts())
+                            .then(function(result) {
+                                console.log(result);
+                                return Promise.resolve(setup_bridge("br_nas", "169.254.100.1"))
+                                    .then(function(msg) {
+                                        console.log(msg.message);
+                                        return new Promise(function(resolve, reject) {
+                                            resolve("setted");
+                                            reject("Bridge Cammand Error!");
+                                        })
+                                    });
                             })
-                        });
+                            .catch(function(err) {
+                                console.log(err);
+                            });
+                    }
                 } else if (array.indexOf("br_mvt0") != -1) {
                     return Promise.resolve(runAgainPath());
                 }
@@ -129,7 +182,13 @@ function generalStart(initStart) {
 }
 
 function commonPath() {
-    return Promise.all([pingMustangs("br_mvt0", false), getExternalIP()])
+    var workingBridgeName = "";
+    if (config.platform == "linux") {
+        workingBridgeName = "br_mvt0";
+    } else if (config.platform == "qts") {
+        workingBridgeName = "br_nas";
+    }
+    return Promise.all([pingMustangs(workingBridgeName, false), getExternalIP()])
         .then(function(allData) {
             var result = allData[0];
             var externalInterface = allData[1].name;
@@ -143,7 +202,7 @@ function commonPath() {
                 var str = "*************************************************************\n" +
                     "** Mustang cards are starting up. Please wait for a while. **\n" +
                     "*************************************************************\n";
-                return Promise.resolve(remove_bridge("br_mvt0"))
+                return Promise.resolve(remove_bridge(workingBridgeName))
                     .then(function(msg) {
                         console.log(msg.message);
                         var obj = {
@@ -162,14 +221,24 @@ function commonPath() {
 }
 
 function dhcpPath() {
-    return Promise.resolve(remove_bridge("br_mvt0"))
+    var workingBridgeName = "";
+    if (config.platform == "linux") {
+        workingBridgeName = "br_mvt0";
+    } else if (config.platform == "qts") {
+        workingBridgeName = "br_nas";
+    }
+    return Promise.resolve(remove_bridge(workingBridgeName))
         .then(function(msg) {
             console.log(msg.message);
             return Promise.resolve(setup_bridge("br_mvt0", "192.168.100.1"));
         })
         .then(function(msg) {
             console.log(msg.message);
-            return Promise.resolve(ubuntu_dhcp());
+            if (config.platform == "linux") {
+                return Promise.resolve(ubuntu_dhcp());
+            } else if (config.platform == "qts") {
+                return Promise.resolve({message : "QTS DHCP"});
+            }
         })
         .then(function(msg) {
             console.log(msg.message);
@@ -177,7 +246,11 @@ function dhcpPath() {
         })
         .then(function(msg) {
             console.log(msg.message);
-            return Promise.resolve(restart_dhcp());
+            if (config.platform == "linux") {
+                return Promise.resolve(restart_dhcp());
+            } else if (config.platform == "qts") {
+                return Promise.resolve({message : "QTS DHCP done."});
+            }
         })
         .then(function(msg) {
             console.log(msg.message);

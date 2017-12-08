@@ -19,14 +19,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+var path = require('path');
+
 var generateFilename = function(filepath, resolution) {
-    var wolf = filepath.split('/');
-    var filename = wolf[wolf.length - 1].split('.')[0];
+    var filename = path.basename(filepath);
     var resolutionName = resolution.split('x')[1] + 'p';
     var time = new Date();
     var curTime = time.getFullYear().toString() + (time.getMonth() + 1).toString() + time.getDate().toString() +
         time.getHours().toString() + time.getMinutes().toString() + time.getSeconds().toString();
-
     return filename + "_" + resolutionName + "_" + curTime;
 }
 

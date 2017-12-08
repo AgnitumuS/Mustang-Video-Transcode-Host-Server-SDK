@@ -26,15 +26,20 @@ const exec = require('child_process').exec;
 var db = require('../../db/dbSqlite').sqliteDB;
 
 function unmountPath(inputPath) {
-    var sourceDirPath = path.dirname(inputPath);
+    var sourceDirPath = path.dirname(path.normalize(inputPath));
     db.serialize(function() {
         db.get("SELECT * from mountTable WHERE sourceDirPath = '" + sourceDirPath + "'", function(err, data) {
             if (data != undefined && sourceDirPath != config.hostMountedDir) {
                 try {
                     var mountCandidate = data.mountedFolder;
-                    var targetPath = config.hostMountedDir + "/" + mountCandidate;
+                    var targetPath = path.normalize(config.hostMountedDir + "/" + mountCandidate);
                     if (fs.existsSync(targetPath)) {
-                        var cmd = 'umount "' + targetPath + '"';
+                        var cmd = ""
+                        if (config.platform == "linux") {
+                          cmd = 'umount "' + targetPath + '"';
+                        } else if (config.platform == "windows") {
+                          cmd = 'rmdir "' + targetPath + '"';
+                        }
                         exec(cmd, (err, stdout, stderr) => {
                             if (err) {
                                 // console.error(err);

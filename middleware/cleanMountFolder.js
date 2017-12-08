@@ -21,6 +21,7 @@
  */
 var db = require('../db/dbSqlite').sqliteDB;
 var fs = require('fs');
+var path = require('path');
 var config = require('../config/config');
 const {
     exec
@@ -34,7 +35,7 @@ function cleanMountFolder(initStart) {
                 if (data != undefined) {
                     for (var i = 0; i < data.length; i++) {
                         var mountedFolder = data[i].mountedFolder;
-                        var targetPath = config.hostMountedDir + "/" + mountedFolder;
+                        var targetPath = path.normalize(config.hostMountedDir + "/" + mountedFolder);
                         cleaningCheck(targetPath, data[i].sourceDirPath);
                     }
                 }
@@ -48,7 +49,7 @@ function cleanMountFolder(initStart) {
                     if (data != undefined) {
                         for (var i = 0; i < data.length; i++) {
                             var mountedFolder = data[i].mountedFolder;
-                            var targetPath = config.hostMountedDir + "/" + mountedFolder;
+                            var targetPath = path.normalize(config.hostMountedDir + "/" + mountedFolder);
                             cleaningCheck(targetPath, data[i].sourceDirPath);
                         }
                     }
@@ -62,7 +63,14 @@ function cleanMountFolder(initStart) {
 function cleaningCheck(targetPath, sourceDirPath) {
     try {
         if (fs.existsSync(targetPath)) {
-            var cmd = 'umount "' + targetPath + '"';
+            var cmd = "";
+            if (config.platform == "linux") {
+              cmd = 'umount "' + targetPath + '"';
+            } else if (config.platform == "qts") {
+                cmd = 'umount "' + targetPath + '"';
+            } else if (config.platform == "windows") {
+              cmd = 'rmdir "' + targetPath + '"';
+            }
             exec(cmd, (err, stdout, stderr) => {
                 if (err) {
                     // console.error(err);
